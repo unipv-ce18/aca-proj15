@@ -20,7 +20,7 @@ struct data
  * @param int umIn int numOut int* patternsnumPat IT RETURN THE NUMBER OF PATTERN
  * @return array of struct data
  */
-struct data * readData(int numIn, int numOut, int* patternsnumPat)
+struct data * readData(int numIn, int numOut, int* numPat)
 {
     int n=0, nb;
     struct data *allData;
@@ -112,7 +112,7 @@ struct data * readData(int numIn, int numOut, int* patternsnumPat)
     /* chiude il file*/
     fclose(fd);
 
-    *patternsnumPat=n-1;
+    *numPat=n-1;
 
     return allData;
 }

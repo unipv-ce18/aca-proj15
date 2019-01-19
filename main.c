@@ -5,11 +5,11 @@
 
 
 int main() {
-    int numIn=2, numOut=1, patternsnumPat;
+    int numIn=11, numOut=1, numPat;
 
-    struct data *allData=readData(numIn, numOut, &patternsnumPat);
+    struct data *allData=readData(numIn, numOut, &numPat);
 
-    seriale(allData, numIn, numOut, patternsnumPat);
+    seriale(allData, numIn, numOut, numPat);
 
     return 0;
 }
