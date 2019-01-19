@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <ctype.h>
 
 struct data
 {
@@ -15,9 +16,9 @@ struct data
 
 
 /**
- * Read a data.csv file with numIn data input per row and numOut data imput per row
+ * Read a data.csv file with numIn data input per row and numOut data input per row
  * the outputs are the last ones
- * all separated by semicolons
+ * float must have dot ".", NOT comma ","
  * @param int umIn int numOut
  * @return si vedrà
  */
@@ -70,7 +71,17 @@ int readData(int numIn, int numOut)
             i++;
         }
 
-        allData[n++] = x;
+        char *p=buf;
+        while (*p) { // While there are more characters to process...
+            if ( isdigit(*p) || ( (*p=='-'||*p=='+'||*p=='.') && isdigit(*(p+1)) )) {
+                // Found a number
+                double val = strtod(p, &p); // Read number
+                printf("%f", val); // and print it.
+            } else {
+                // Otherwise, move on to the next character.
+                p++;
+            }
+        }
     }
 
 
