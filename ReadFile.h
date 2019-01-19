@@ -10,8 +10,8 @@
 
 struct data
 {
-    float *in;
-    float *out;
+    double *in;
+    double *out;
 };
 
 
@@ -20,23 +20,22 @@ struct data
  * the outputs are the last ones
  * float must have dot ".", NOT comma ","
  * @param int umIn int numOut
- * @return si vedrà
+ * @return array of struct data, the last one have in=NULL and out=NULL
  */
-int readData(int numIn, int numOut)
+struct data * readData(int numIn, int numOut)
 {
-    int i=0, n=0, x, nb;
+    int n=0, nb;
     struct data *allData;
     int allocati;  /* byte allocati */
     int dimbloc;   /* byte in un blocco */
-    int dimint;    /* byte in un struct data */
+    int dimstruct;    /* byte in un struct data */
     int usati;     /* byte struct data usati */
     nb = 100;      /* numero di dati per blocco */
     FILE *fd;
     char buf[200];
-    char *res;
     char *fileName="data.csv";
-    dimint = sizeof(struct data);
-    dimbloc = nb * dimint;
+    dimstruct = sizeof(struct data);
+    dimbloc = nb * dimstruct;
     usati = 0;
 
     //inizializzo allData della grandezza per un blocco
@@ -58,7 +57,7 @@ int readData(int numIn, int numOut)
 
     /* leggo il file */
     while(fgets(buf, 200, fd)!=NULL) {
-        usati += dimint;
+        usati += dimstruct;
         if(usati>allocati)
         {
             allocati += dimbloc;
@@ -68,25 +67,43 @@ int readData(int numIn, int numOut)
                 perror("Not enough memory\n");
                 exit(1);
             }
-            i++;
         }
 
+        int in=0, out=0;
         char *p=buf;
+
+        allData[n].in=(double *) malloc(sizeof(double)*numIn);
+        allData[n].out=(double *) malloc(sizeof(double)*numOut);
+
         while (*p) { // While there are more characters to process...
             if ( isdigit(*p) || ( (*p=='-'||*p=='+'||*p=='.') && isdigit(*(p+1)) )) {
                 // Found a number
                 double val = strtod(p, &p); // Read number
-                printf("%f", val); // and print it.
+                if(in<numIn){
+                    allData[n].in[in]=val;
+                    in++;
+                }
+                else{
+                    allData[n].out[out]=val;
+                    out++;
+                }
             } else {
                 // Otherwise, move on to the next character.
                 p++;
             }
+
         }
+
+
+        n++;
     }
 
 
     /* chiude il file*/
     fclose(fd);
 
-    return 0;
+    allData[n].in=NULL;
+    allData[n].out=NULL;
+
+    return allData;
 }
