@@ -20,8 +20,8 @@
 int seriale() {
     int    i, j, k, p, np, op, ranpat[NUMPAT+1], epoch;
     int    NumPattern = NUMPAT, NumInput = NUMIN, NumHidden = NUMHID, NumOutput = NUMOUT;
-    double Input[NUMPAT+1][NUMIN+1] = { 0, 0, 0,  0, 10, 10,  0, 5, 5,  0, 13, 13,  0, 78, 78 };
-    double Target[NUMPAT+1][NUMOUT+1] = { 0, 0,  0, 10,  0, 5,  0, 13,  0, 78 };
+    double Input[NUMPAT+1][NUMIN+1] = { 0, 0, 0,  0, 0, 0,  0, 1, 0,  0, 0, 1,  0, 1, 1 };
+    double Target[NUMPAT+1][NUMOUT+1] = { 0, 0,  0, 0,  0, 1,  0, 1,  0, 0 };
     double SumH[NUMPAT+1][NUMHID+1], WeightIH[NUMIN+1][NUMHID+1], Hidden[NUMPAT+1][NUMHID+1];
     double SumO[NUMPAT+1][NUMOUT+1], WeightHO[NUMHID+1][NUMOUT+1], Output[NUMPAT+1][NUMOUT+1];
     double DeltaO[NUMOUT+1], SumDOW[NUMHID+1], DeltaH[NUMHID+1];
@@ -41,7 +41,7 @@ int seriale() {
         }
     }
 
-    for( epoch = 0 ; epoch < 100000000 ; epoch++) {    /* iterate weight updates */
+    for( epoch = 0 ; epoch < 100000 ; epoch++) {    /* iterate weight updates */
         for( p = 1 ; p <= NumPattern ; p++ ) {    /* randomize order of training patterns */
             ranpat[p] = p ;
         }
@@ -64,13 +64,13 @@ int seriale() {
                 for( j = 1 ; j <= NumHidden ; j++ ) {
                     SumO[p][k] += Hidden[p][j] * WeightHO[j][k] ;
                 }
-//                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs */
-                Output[p][k] = SumO[p][k];    /*  Linear Outputs */
-                Error += 0.5 * (Target[p][k] - Output[p][k]) * (Target[p][k] - Output[p][k]) ;   /* SSE */
-//                Error -= ( Target[p][k] * log( Output[p][k] ) + ( 1.0 - Target[p][k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error */
+                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs */
+//                Output[p][k] = SumO[p][k];    /*  Linear Outputs */
+//                Error += 0.5 * (Target[p][k] - Output[p][k]) * (Target[p][k] - Output[p][k]) ;   /* SSE */
+                Error -= ( Target[p][k] * log( Output[p][k] ) + ( 1.0 - Target[p][k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error */
 //                DeltaO[k] = (Target[p][k] - Output[p][k]) * Output[p][k] * (1.0 - Output[p][k]) ;   /* Sigmoidal Outputs, SSE */
-//                DeltaO[k] = Target[p][k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
-                DeltaO[k] = Target[p][k] - Output[p][k];    /* Linear Outputs, SSE */
+                DeltaO[k] = Target[p][k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
+//                DeltaO[k] = Target[p][k] - Output[p][k];    /* Linear Outputs, SSE */
             }
             for( j = 1 ; j <= NumHidden ; j++ ) {    /* 'back-propagate' errors to hidden layer */
                 SumDOW[j] = 0.0 ;
