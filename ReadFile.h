@@ -1,7 +1,6 @@
 #ifndef PROGETTO15_READFILE_H
 #define PROGETTO15_READFILE_H
 
-#endif //PROGETTO15_READFILE_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,15 +13,14 @@ struct data
     double *out;
 };
 
-
 /**
  * Read a data.csv file with numIn data input per row and numOut data input per row
  * the outputs are the last ones
  * float must have dot ".", NOT comma ","
- * @param int umIn int numOut
- * @return array of struct data, the last one have in=NULL and out=NULL
+ * @param int umIn int numOut int* patternsnumPat IT RETURN THE NUMBER OF PATTERN
+ * @return array of struct data
  */
-struct data * readData(int numIn, int numOut)
+struct data * readData(int numIn, int numOut, int* patternsnumPat)
 {
     int n=0, nb;
     struct data *allData;
@@ -114,8 +112,10 @@ struct data * readData(int numIn, int numOut)
     /* chiude il file*/
     fclose(fd);
 
-    allData[n].in=NULL;
-    allData[n].out=NULL;
+    *patternsnumPat=n-1;
 
     return allData;
 }
+
+
+#endif //PROGETTO15_READFILE_H
