@@ -45,8 +45,14 @@ struct data * readData(int numIn, int numOut, int* numPat)
     }
     allocati = dimbloc;
 
-    allData[n].in=(double *) malloc(sizeof(double)*numIn+1);
-    allData[n].out=(double *) malloc(sizeof(double)*numOut+1);
+    allData[n].in=(double *) malloc(sizeof(double)*(numIn+1));
+    allData[n].out=(double *) malloc(sizeof(double)*(numOut+1));
+    if(allData[n].out == NULL || allData[n].in==NULL)
+    {
+        perror("Not enough memory\n");
+        exit(1);
+    }
+
     for(int i=0; i<numIn+1;i++){
         allData[n].in[i]=0;
     }
@@ -80,8 +86,13 @@ struct data * readData(int numIn, int numOut, int* numPat)
         int in=1, out=1;
         char *p=buf;
 
-        allData[n].in=(double *) malloc(sizeof(double)*numIn+1);
-        allData[n].out=(double *) malloc(sizeof(double)*numOut+1);
+        allData[n].in=(double *) malloc(sizeof(double)*(numIn+1));
+        allData[n].out=(double *) malloc(sizeof(double)*(numOut+1));
+        if(allData[n].out == NULL || allData[n].in==NULL)
+        {
+            perror("Not enough memory\n");
+            exit(1);
+        }
         allData[n].in[0]=0;
         allData[n].out[0]=0;
 
