@@ -47,6 +47,16 @@ struct data * readData(int numIn, int numOut)
     }
     allocati = dimbloc;
 
+    allData[n].in=(double *) malloc(sizeof(double)*numIn+1);
+    allData[n].out=(double *) malloc(sizeof(double)*numOut+1);
+    for(int i=0; i<numIn+1;i++){
+        allData[n].in[i]=0;
+    }
+    for(int i=0; i<numOut+1;i++){
+        allData[n].out[i]=0;
+    }
+    n++;
+
 
     /* apre il file */
     fd=fopen(fileName, "r");
@@ -69,17 +79,19 @@ struct data * readData(int numIn, int numOut)
             }
         }
 
-        int in=0, out=0;
+        int in=1, out=1;
         char *p=buf;
 
-        allData[n].in=(double *) malloc(sizeof(double)*numIn);
-        allData[n].out=(double *) malloc(sizeof(double)*numOut);
+        allData[n].in=(double *) malloc(sizeof(double)*numIn+1);
+        allData[n].out=(double *) malloc(sizeof(double)*numOut+1);
+        allData[n].in[0]=0;
+        allData[n].out[0]=0;
 
         while (*p) { // While there are more characters to process...
             if ( isdigit(*p) || ( (*p=='-'||*p=='+'||*p=='.') && isdigit(*(p+1)) )) {
                 // Found a number
                 double val = strtod(p, &p); // Read number
-                if(in<numIn){
+                if(in<numIn+1){
                     allData[n].in[in]=val;
                     in++;
                 }
