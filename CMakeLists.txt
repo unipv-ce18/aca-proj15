@@ -18,4 +18,4 @@ ELSE()
 ENDIF()
 
 
-add_executable(Progetto15 main.c seriale.h parallel.h ReadFile.h TestOpenMP.h)
+add_executable(Progetto15 main.c seriale.h parallel.h ReadFile.h TestOpenMP.h data.csv)
