@@ -28,7 +28,7 @@ struct data * readData(int numIn, int numOut, int* numPat)
     int dimbloc;   /* byte in un blocco */
     int dimstruct;    /* byte in un struct data */
     int usati;     /* byte struct data usati */
-    nb = 100;      /* numero di dati per blocco */
+    nb = 10;      /* numero di dati per blocco */
     FILE *fd;
     char buf[200];
     char *fileName="data.csv";
@@ -72,12 +72,13 @@ struct data * readData(int numIn, int numOut, int* numPat)
     /* leggo il file */
     while(fgets(buf, 200, fd)!=NULL) {
         usati += dimstruct;
-        if(usati>allocati)
+        if(usati>=allocati)
         {
             allocati += dimbloc;
             allData = (struct data *) realloc(allData, allocati);
             if(allData == NULL)
             {
+
                 perror("Not enough memory\n");
                 exit(1);
             }
