@@ -10,9 +10,11 @@
 #include "ReadFile.h"
 
 
-#define NUMHID 2
+#define NUMHID 15
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
+
+#define max(a,b)  (((a) > (b)) ? (a) : (b))
 
 int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     int    i, j, k, p, np, op, ranpat[numPattern+1], epoch;
@@ -59,13 +61,15 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
                 for( j = 1 ; j <= NumHidden ; j++ ) {
                     SumO[p][k] += Hidden[p][j] * WeightHO[j][k] ;
                 }
-                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs */
+                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs NON USARE, VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
 //                Output[p][k] = SumO[p][k];    /*  Linear Outputs */
-//                Error += 0.5 * (Target[p][k] - Output[p][k]) * (Target[p][k] - Output[p][k]) ;   /* SSE */
-                Error -= ( allData[p].out[k] * log( Output[p][k] ) + ( 1.0 - allData[p].out[k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error */
-//                DeltaO[k] = (Target[p][k] - Output[p][k]) * Output[p][k] * (1.0 - Output[p][k]) ;   /* Sigmoidal Outputs, SSE */
-                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
-//                DeltaO[k] = Target[p][k] - Output[p][k];    /* Linear Outputs, SSE */
+//                Output[p][k] = log(1+exp(SumO[p][k]));
+//                Output[p][k] = max(0, SumO[p][k]);
+                Error += 0.5 * (allData[p].out[k] - Output[p][k]) * (allData[p].out[k] - Output[p][k]) ;   /* SSE */
+//                Error -= ( allData[p].out[k] * log( Output[p][k] ) + ( 1.0 - allData[p].out[k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error */
+                DeltaO[k] = (allData[p].out[k] - Output[p][k]) * Output[p][k] * (1.0 - Output[p][k]) ;   /* Sigmoidal Outputs, SSE */
+//                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
+//                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Linear Outputs, SSE */
             }
             for( j = 1 ; j <= NumHidden ; j++ ) {    /* 'back-propagate' errors to hidden layer */
                 SumDOW[j] = 0.0 ;
@@ -92,7 +96,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
             }
         }
         if( epoch%100 == 0 ) fprintf(stdout, "\nEpoch %-5d :   Error = %f", epoch, Error) ;
-        if( Error < 0.0004 ) break ;  /* stop learning when 'near enough' */
+        if( Error < 0.004 ) break ;  /* stop learning when 'near enough' */
     }
 
     fprintf(stdout, "\n\nNETWORK DATA - EPOCH %d\n\nPat\t", epoch) ;   /* print network outputs */
@@ -108,9 +112,16 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
             fprintf(stdout, "%f\t", allData[p].in[i]) ;
         }
         for( k = 1 ; k <= numOut ; k++ ) {
-            fprintf(stdout, "%f\t%f\t", allData[p].in[k], Output[p][k]) ;
+            fprintf(stdout, "%f\t%f\t", allData[p].out[k], Output[p][k]) ;
         }
     }
+
+    for (int i=0;i<numPattern;i++){
+        free(allData[i].out);
+        free(allData[i].in);
+    }
+    free(allData);
+
     return 1 ;
 }
 
