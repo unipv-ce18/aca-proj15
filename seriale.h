@@ -10,7 +10,7 @@
 #include "ReadFile.h"
 
 
-#define NUMHID 15
+#define NUMHID 40
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
@@ -38,12 +38,12 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
         }
     }
 
-    for( epoch = 0 ; epoch < 100000 ; epoch++) {    /* iterate weight updates */
+    for( epoch = 0 ; epoch < 20000 ; epoch++) {    /* iterate weight updates */
         for( p = 1 ; p <= numPattern ; p++ ) {    /* randomize order of training patterns */
             ranpat[p] = p ;
         }
         for( p = 1 ; p <= numPattern ; p++) {
-            np = p + rando() * ( numPattern + 1 - p ) ;
+            np = (int) (p + rando() * (numPattern + 1 - p ));
             op = ranpat[p] ; ranpat[p] = ranpat[np] ; ranpat[np] = op ;
         }
         Error = 0.0 ;
@@ -100,9 +100,9 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     }
 
     fprintf(stdout, "\n\nNETWORK DATA - EPOCH %d\n\nPat\t", epoch) ;   /* print network outputs */
-    for( i = 1 ; i <= numIn ; i++ ) {
+    /*for( i = 1 ; i <= numIn ; i++ ) {
         fprintf(stdout, "Input%-4d\t", i) ;
-    }
+    }*/
     for( k = 1 ; k <= numOut ; k++ ) {
         fprintf(stdout, "Target%-4d\tOutput%-4d\t", k, k) ;
     }
