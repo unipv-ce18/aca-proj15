@@ -10,5 +10,7 @@ int main() {
 
     seriale(allData, numIn, numOut, numPat);
 
+    //Bella
+
     return 0;
 }
