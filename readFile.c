@@ -1,17 +1,10 @@
-#ifndef PROGETTO15_READFILE_H
-#define PROGETTO15_READFILE_H
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <ctype.h>
+#include "readFile.h"
 
-struct data
-{
-    double *in;
-    double *out;
-};
+
 
 /**
  * Read a data.csv file with numIn data input per row and numOut data input per row
@@ -128,6 +121,3 @@ struct data * readData(int numIn, int numOut, int* numPat)
 
     return allData;
 }
-
-
-#endif //PROGETTO15_READFILE_H
