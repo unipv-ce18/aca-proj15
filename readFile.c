@@ -5,7 +5,7 @@
 #include "readFile.h"
 
 struct data * allocateFirstBlock(struct data *allData, int dimBlock);
-void firstDataAsBias(struct data allData, int numIn, int numOut);
+struct data firstDataAsBias(struct data allData, int numIn, int numOut);
 FILE* openFile(FILE* fd, char* fileName);
 struct data * allocateNewBlock(struct data *allData,int allocati);
 struct data firstDataInAndOutAsBias(struct data data, int numIn, int numOut);
@@ -39,11 +39,10 @@ struct data * readData(int numIn, int numOut, int* numPat)
     allData=allocateFirstBlock(allData,dimBlock); //alloco allData della grandezza per un blocco
     allocati+=dimBlock;
 
-    firstDataAsBias(allData[n], numIn, numOut);
+    allData[n]=firstDataAsBias(allData[n], numIn, numOut);
     n++;
 
     fd=openFile(fd, fileName);
-
 
     /* leggo il file */
     while(fgets(buf, 200, fd)!=NULL) {
@@ -77,7 +76,7 @@ struct data* allocateFirstBlock(struct data *allData, int dimBlock){
     return allData;
 }
 
-void firstDataAsBias(struct data allData, int numIn, int numOut){
+struct data firstDataAsBias(struct data allData, int numIn, int numOut){
     allData.in=(double *) malloc(sizeof(double)*(numIn+1));
     allData.out=(double *) malloc(sizeof(double)*(numOut+1));
     if(allData.out == NULL || allData.in==NULL)
@@ -92,6 +91,7 @@ void firstDataAsBias(struct data allData, int numIn, int numOut){
     for(int i=0; i<numOut+1;i++){
         allData.out[i]=0;
     }
+    return allData;
 }
 
 FILE* openFile(FILE* fd, char* fileName){
