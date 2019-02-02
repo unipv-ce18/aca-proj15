@@ -3,7 +3,7 @@
 
     #include "structData.h"
 
-    struct data * readData(int numIn, int numOut, int* numPat);
+    struct data * readData(int, int, int* );
 
 
 #endif //PROGETTO15_READFILE_H
