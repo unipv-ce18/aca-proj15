@@ -4,7 +4,12 @@
 #include <ctype.h>
 #include "readFile.h"
 
-
+struct data * allocateFirstBlock(struct data *allData, int dimBlock);
+void firstDataAsBias(struct data allData, int numIn, int numOut);
+FILE* openFile(FILE* fd, char* fileName);
+struct data * allocateNewBlock(struct data *allData,int allocati);
+struct data firstDataInAndOutAsBias(struct data data, int numIn, int numOut);
+struct data readAllDigit(char* line, struct data data, int numIn);
 
 /**
  * Read a data.csv file with numIn data input per row and numOut data input per row
@@ -15,104 +20,44 @@
  */
 struct data * readData(int numIn, int numOut, int* numPat)
 {
-    int n=0, nb;
-    struct data *allData;
-    int allocati;  /* byte allocati */
-    int dimbloc;   /* byte in un blocco */
+    int n=0;
+    struct data *allData = NULL;
+    int allocati=0;  /* byte allocati */
+    int dimBlock;   /* byte in un blocco */
     int dimstruct;    /* byte in un struct data */
-    int usati;     /* byte struct data usati */
-    nb = 10;      /* numero di dati per blocco */
+    int usati=0;     /* byte struct data usati */
+    int nb = 10;      /* numero di dati per blocco */
+
     FILE *fd;
     char buf[200];
     char *fileName="data.csv";
+
     dimstruct = sizeof(struct data);
-    dimbloc = nb * dimstruct;
-    usati = 0;
+    dimBlock = nb * dimstruct;
 
-    //inizializzo allData della grandezza per un blocco
-    allData = (struct data *) malloc(dimbloc);
-    if(allData == NULL)
-    {
-        perror("Not enough memory\n");
-        exit(1);
-    }
-    allocati = dimbloc;
 
-    allData[n].in=(double *) malloc(sizeof(double)*(numIn+1));
-    allData[n].out=(double *) malloc(sizeof(double)*(numOut+1));
-    if(allData[n].out == NULL || allData[n].in==NULL)
-    {
-        perror("Not enough memory\n");
-        exit(1);
-    }
+    allData=allocateFirstBlock(allData,dimBlock); //alloco allData della grandezza per un blocco
+    allocati+=dimBlock;
 
-    for(int i=0; i<numIn+1;i++){
-        allData[n].in[i]=0;
-    }
-    for(int i=0; i<numOut+1;i++){
-        allData[n].out[i]=0;
-    }
+    firstDataAsBias(allData[n], numIn, numOut);
     n++;
 
+    fd=openFile(fd, fileName);
 
-    /* apre il file */
-    fd=fopen(fileName, "r");
-    if( fd==NULL ) {
-        perror("Error, data file not found");
-        exit(1);
-    }
 
     /* leggo il file */
     while(fgets(buf, 200, fd)!=NULL) {
         usati += dimstruct;
         if(usati>=allocati)
         {
-            allocati += dimbloc;
-            allData = (struct data *) realloc(allData, allocati);
-            if(allData == NULL)
-            {
-
-                perror("Not enough memory\n");
-                exit(1);
-            }
+            allData=allocateNewBlock(allData, allocati += dimBlock);
         }
 
-        int in=1, out=1;
-        char *p=buf;
+        allData[n]=firstDataInAndOutAsBias(allData[n], numIn, numOut);
 
-        allData[n].in=(double *) malloc(sizeof(double)*(numIn+1));
-        allData[n].out=(double *) malloc(sizeof(double)*(numOut+1));
-        if(allData[n].out == NULL || allData[n].in==NULL)
-        {
-            perror("Not enough memory\n");
-            exit(1);
-        }
-        allData[n].in[0]=0;
-        allData[n].out[0]=0;
-
-        while (*p) { // While there are more characters to process...
-            if ( isdigit(*p) || ( (*p=='-'||*p=='+'||*p=='.') && isdigit(*(p+1)) )) {
-                // Found a number
-                double val = strtod(p, &p); // Read number
-                if(in<numIn+1){
-                    allData[n].in[in]=val;
-                    in++;
-                }
-                else{
-                    allData[n].out[out]=val;
-                    out++;
-                }
-            } else {
-                // Otherwise, move on to the next character.
-                p++;
-            }
-
-        }
-
-
+        allData[n]=readAllDigit(buf, allData[n], numIn);
         n++;
     }
-
 
     /* chiude il file*/
     fclose(fd);
@@ -120,4 +65,89 @@ struct data * readData(int numIn, int numOut, int* numPat)
     *numPat=n-1;
 
     return allData;
+}
+
+struct data* allocateFirstBlock(struct data *allData, int dimBlock){
+    allData = (struct data *) malloc((size_t) dimBlock);
+    if(allData == NULL)
+    {
+        perror("Not enough memory\n");
+        exit(1);
+    }
+    return allData;
+}
+
+void firstDataAsBias(struct data allData, int numIn, int numOut){
+    allData.in=(double *) malloc(sizeof(double)*(numIn+1));
+    allData.out=(double *) malloc(sizeof(double)*(numOut+1));
+    if(allData.out == NULL || allData.in==NULL)
+    {
+        perror("Not enough memory\n");
+        exit(1);
+    }
+
+    for(int i=0; i<numIn+1;i++){
+        allData.in[i]=0;
+    }
+    for(int i=0; i<numOut+1;i++){
+        allData.out[i]=0;
+    }
+}
+
+FILE* openFile(FILE* fd, char* fileName){
+    fd=fopen(fileName, "r");
+    if( fd==NULL ) {
+        perror("Error, data file not found");
+        exit(1);
+    }
+    return fd;
+}
+
+struct data * allocateNewBlock(struct data *allData, int allocati){
+    allData = (struct data *) realloc(allData, (size_t) allocati);
+    if(allData == NULL)
+    {
+
+        perror("Not enough memory\n");
+        exit(1);
+    }
+    return allData;
+}
+
+struct data firstDataInAndOutAsBias(struct data data, int numIn, int numOut) {
+    data.in=(double *) malloc(sizeof(double)*(numIn+1));
+    data.out=(double *) malloc(sizeof(double)*(numOut+1));
+    if(data.out == NULL || data.in==NULL)
+    {
+        perror("Not enough memory\n");
+        exit(1);
+    }
+    data.in[0]=0;
+    data.out[0]=0;
+    return data;
+}
+
+
+struct data readAllDigit(char* line, struct data data, int numIn){
+    int in=1, out=1;
+    char *p=line;
+
+    while (*p) { // While there are more characters to process...
+        if ( isdigit(*p) || ( (*p=='-'||*p=='+'||*p=='.') && isdigit(*(p+1)) )) {
+            // Found a number
+            double val = strtod(p, &p); // Read number
+            if(in<numIn+1){
+                data.in[in]=val;
+                in++;
+            }
+            else{
+                data.out[out]=val;
+                out++;
+            }
+        } else {
+            // Otherwise, move on to the next character.
+            p++;
+        }
+    }
+    return data;
 }
