@@ -20,7 +20,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     double SumO[numPattern+1][numOut+1], WeightHO[NUMHID+1][numOut+1], Output[numPattern+1][numOut+1];
     double DeltaO[numOut+1], SumDOW[NUMHID+1], DeltaH[NUMHID+1];
     double DeltaWeightIH[numIn+1][NUMHID+1], DeltaWeightHO[NUMHID+1][numOut+1];
-    double Error, eta = 0.5, alpha = 0.1, smallwt = 0.5;
+    double Error, eta = 0.1, alpha = 0.1, smallwt = 0.2;
     double accuracy, minAccuracy=1.0;
     double sensitivity, maxSensitivity=0;
 
@@ -37,7 +37,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
         }
     }
 
-    for( epoch = 0 ; epoch < 20000 ; epoch++) {    /* iterate weight updates */
+    for( epoch = 0 ; epoch < 10000 ; epoch++) {    /* iterate weight updates */
         for( p = 1 ; p <= numPattern ; p++ ) {    /* randomize order of training patterns */
             ranpat[p] = p ;
         }
@@ -122,15 +122,16 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
         if(maxSensitivity<sensitivity)
             maxSensitivity=sensitivity;
 
-        if( epoch%100 == 0 )
-            fprintf(stdout, "\nEpoch %-5d :   Error = %f, accuracy = %f, sensitivity = %f", epoch, Error/(numPattern-1), accuracy, sensitivity) ;
+        //if( epoch%100 == 0 )
+            //fprintf(stdout, "\nEpoch %-5d :   Error = %f, accuracy = %f, sensitivity = %f", epoch, Error/(numPattern-1), accuracy, sensitivity) ;
         if( accuracy < (0.01) )
             break ;  /* stop learning when 'near enough' */
     }
 
-    fprintf(stdout, "\n\nMinima accurateza  %-4f\t", minAccuracy) ;
-    fprintf(stdout, "\n\nMassima sensitivita' %-4f\t", maxSensitivity) ;
-    fprintf(stdout, "\n\nNETWORK DATA - EPOCH %d\n\nPat\t", epoch) ;   /* print network outputs */
+    fprintf(stdout, "\n%-4f;%-4f;%-4f", eta, alpha, smallwt) ;
+    fprintf(stdout, ";%-4f", minAccuracy) ;
+    fprintf(stdout, ";%-4f", maxSensitivity) ;
+    //printf(stdout, "\n\nNETWORK DATA - EPOCH %d\n\nPat\t", epoch) ;   /* print network outputs */
     /*for( i = 1 ; i <= numIn ; i++ ) {
         fprintf(stdout, "Input%-4d\t", i) ;
     }
@@ -145,8 +146,8 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
         for( k = 1 ; k <= numOut ; k++ ) {
             fprintf(stdout, "%f\t%f\t", allData[p].out[k], Output[p][k]) ;
         }
-    }*/
-
+    }
+    */
     for (int c=0;c<numPattern;c++){
         free(allData[c].out);
         free(allData[c].in);
