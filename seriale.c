@@ -7,7 +7,7 @@
 #include "seriale.h"
 
 
-#define NUMHID 40
+#define NUMHID 7
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
@@ -20,7 +20,9 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     double SumO[numPattern+1][numOut+1], WeightHO[NUMHID+1][numOut+1], Output[numPattern+1][numOut+1];
     double DeltaO[numOut+1], SumDOW[NUMHID+1], DeltaH[NUMHID+1];
     double DeltaWeightIH[numIn+1][NUMHID+1], DeltaWeightHO[NUMHID+1][numOut+1];
-    double Error, eta = 0.5, alpha = 0.9, smallwt = 0.5;
+    double Error, eta = 0.5, alpha = 0.1, smallwt = 0.5;
+    double accuracy, minAccuracy=1.0;
+    double sensitivity, maxSensitivity=0;
 
     for( j = 1 ; j <= NumHidden ; j++ ) {    /* initialize WeightIH and DeltaWeightIH */
         for( i = 0 ; i <= numIn ; i++ ) {
@@ -59,20 +61,20 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
                     SumO[p][k] += Hidden[p][j] * WeightHO[j][k] ;
                 }
 
-                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
+//                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
 /*                double expSum=0;
                 for( int h = 1 ; h <= numOut ; h++ ) {expSum+=SumO[p][h];}
                 Output[p][k] = exp(-SumO[p][k])/expSum;   /* Soft max  utile se si hanno più output*/
-//                Output[p][k] = SumO[p][k];    /*  Linear Outputs */
+                Output[p][k] = SumO[p][k];    /*  Linear Outputs */
 //                Output[p][k] = log(1+exp(SumO[p][k]));
 //                Output[p][k] = max(0, SumO[p][k]);
 
-//                Error += 0.5 * (allData[p].out[k] - Output[p][k]) * (allData[p].out[k] - Output[p][k]) ;   /* SSE */
-                Error -= ( allData[p].out[k] * log( Output[p][k] ) + ( 1.0 - allData[p].out[k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error UTILE PER PROBABILITY OUTPUT*/
+                Error += 0.5 * (allData[p].out[k] - Output[p][k]) * (allData[p].out[k] - Output[p][k]) ;   /* SSE */
+//                Error -= ( allData[p].out[k] * log( Output[p][k] ) + ( 1.0 - allData[p].out[k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error UTILE PER PROBABILITY OUTPUT*/
 
-                DeltaO[k] = (allData[p].out[k] - Output[p][k]) * Output[p][k] * (1.0 - Output[p][k]) ;   /* Sigmoidal Outputs, SSE */
+//                DeltaO[k] = (allData[p].out[k] - Output[p][k]) * Output[p][k] * (1.0 - Output[p][k]) ;   /* Sigmoidal Outputs, SSE */
 //                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
-//                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Linear Outputs, SSE */
+                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Linear Outputs, SSE */
             }
             for( j = 1 ; j <= NumHidden ; j++ ) {    /* 'back-propagate' errors to hidden layer */
                 SumDOW[j] = 0.0 ;
@@ -98,18 +100,44 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
                 }
             }
         }
-        if( epoch%100 == 0 ) fprintf(stdout, "\nEpoch %-5d :   Error = %f", epoch, Error) ;
-        if( Error < 0.004 ) break ;  /* stop learning when 'near enough' */
+
+        accuracy=0;
+        sensitivity=0;
+        for (int z=1;z<numPattern;z++){
+            double deltaAccuracy=fabs(allData[z].out[1]- (roundf((float) (Output[z][1] * 10)) / 10));
+
+            if(deltaAccuracy<0.1) {
+                sensitivity++;
+            } else{
+                accuracy+=deltaAccuracy;
+            }
+        }
+
+        accuracy=accuracy/(numPattern-1-sensitivity);
+        sensitivity=sensitivity/(numPattern-1);
+
+        if(minAccuracy>accuracy)
+            minAccuracy=accuracy;
+
+        if(maxSensitivity<sensitivity)
+            maxSensitivity=sensitivity;
+
+        if( epoch%100 == 0 )
+            fprintf(stdout, "\nEpoch %-5d :   Error = %f, accuracy = %f, sensitivity = %f", epoch, Error/(numPattern-1), accuracy, sensitivity) ;
+        if( accuracy < (0.01) )
+            break ;  /* stop learning when 'near enough' */
     }
 
+    fprintf(stdout, "\n\nMinima accurateza  %-4f\t", minAccuracy) ;
+    fprintf(stdout, "\n\nMassima sensitivita' %-4f\t", maxSensitivity) ;
     fprintf(stdout, "\n\nNETWORK DATA - EPOCH %d\n\nPat\t", epoch) ;   /* print network outputs */
     /*for( i = 1 ; i <= numIn ; i++ ) {
         fprintf(stdout, "Input%-4d\t", i) ;
-    }*/
+    }
     for( k = 1 ; k <= numOut ; k++ ) {
         fprintf(stdout, "Target%-4d\tOutput%-4d\t", k, k) ;
     }
-    for( p = 1 ; p <= numPattern ; p++ ) {
+    for( p = 1 ; p <= 100 ; p++ ) {
         fprintf(stdout, "\n%d\t", p) ;
         for( i = 1 ; i <= numIn ; i++ ) {
             fprintf(stdout, "%f\t", allData[p].in[i]) ;
@@ -117,11 +145,11 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
         for( k = 1 ; k <= numOut ; k++ ) {
             fprintf(stdout, "%f\t%f\t", allData[p].out[k], Output[p][k]) ;
         }
-    }
+    }*/
 
-    for (int i=0;i<numPattern;i++){
-        free(allData[i].out);
-        free(allData[i].in);
+    for (int c=0;c<numPattern;c++){
+        free(allData[c].out);
+        free(allData[c].in);
     }
     free(allData);
 
