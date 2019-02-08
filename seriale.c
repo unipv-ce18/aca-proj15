@@ -7,7 +7,7 @@
 #include "seriale.h"
 
 
-#define NUMHID 7
+#define NUMHID 5
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
@@ -65,7 +65,12 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
 /*                double expSum=0;
                 for( int h = 1 ; h <= numOut ; h++ ) {expSum+=SumO[p][h];}
                 Output[p][k] = exp(-SumO[p][k])/expSum;   /* Soft max  utile se si hanno più output*/
-                Output[p][k] = SumO[p][k];    /*  Linear Outputs */
+//                Output[p][k] = SumO[p][k];    /*  Linear Outputs */
+                if(SumO[p][k]<0) { /*  Relu Outputs */
+                    Output[p][k] = 0;
+                }else {
+                    Output[p][k] = SumO[p][k];
+                }
 //                Output[p][k] = log(1+exp(SumO[p][k]));
 //                Output[p][k] = max(0, SumO[p][k]);
 
