@@ -3,41 +3,46 @@
 #include <time.h>
 #include <math.h>
 #include <fcntl.h>
-#include "readFile.h"
+#include "readData.h"
 #include "seriale.h"
+#include "readInitialWeight.h"
 
 
 #define NUMHID 7
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
-#define max(a,b)  (((a) > (b)) ? (a) : (b))
-
 int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     int    i, j, k, p, np, op, ranpat[numPattern+1], epoch;
     int    NumHidden = NUMHID;
-    double SumH[numPattern+1][NUMHID+1], WeightIH[numIn+1][NUMHID+1], Hidden[numPattern+1][NUMHID+1];
-    double SumO[numPattern+1][numOut+1], WeightHO[NUMHID+1][numOut+1], Output[numPattern+1][numOut+1];
+    double SumH[numPattern+1][NUMHID+1], **WeightIH, Hidden[numPattern+1][NUMHID+1];
+    double SumO[numPattern+1][numOut+1], **WeightHO, Output[numPattern+1][numOut+1];
     double DeltaO[numOut+1], SumDOW[NUMHID+1], DeltaH[NUMHID+1];
     double DeltaWeightIH[numIn+1][NUMHID+1], DeltaWeightHO[NUMHID+1][numOut+1];
     double Error, eta = 0.02, alpha = 0.1, smallwt = 0.7;
-    double accuracy=0, minAccuracy=100.0;
+    double accuracy=0, minAccuracy=10.0;
     double sensitivity=0, maxSensitivity=0;
 
-    for( j = 1 ; j <= NumHidden ; j++ ) {    /* initialize WeightIH and DeltaWeightIH */
+
+    WeightIH=readInitialWeightIH(numIn, NumHidden);
+
+    for( j = 1 ; j <= NumHidden ; j++ ) {    // initialize WeightIH and DeltaWeightIH
         for( i = 0 ; i <= numIn ; i++ ) {
             DeltaWeightIH[i][j] = 0.0 ;
-            WeightIH[i][j] = 2.0 * ( rando() - 0.5 ) * smallwt ;
+            //WeightIH[i][j] = 2.0 * ( rando() - 0.5 ) * smallwt ;
+            //fprintf(stdout, "\n%-4f", WeightIH[i][j]) ;
         }
     }
+
+    WeightHO= readInitialWeightHO(NumHidden, numOut);
     for( k = 1 ; k <= numOut ; k ++ ) {    /* initialize WeightHO and DeltaWeightHO */
         for( j = 0 ; j <= NumHidden ; j++ ) {
             DeltaWeightHO[j][k] = 0.0 ;
-            WeightHO[j][k] = 2.0 * ( rando() - 0.5 ) * smallwt ;
+            //WeightHO[j][k] = 2.0 * ( rando() - 0.5 ) * smallwt ;
         }
     }
 
-    for( epoch = 0 ; epoch < 15000 ; epoch++) {    /* iterate weight updates */
+    for( epoch = 0 ; epoch < 5000 ; epoch++) {    /* iterate weight updates */
         for( p = 1 ; p <= numPattern ; p++ ) {    /* randomize order of training patterns */
             ranpat[p] = p ;
         }

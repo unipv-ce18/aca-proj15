@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <ctype.h>
-#include "readFile.h"
+#include "readData.h"
 
 struct data * allocateFirstBlock(struct data *allData, int dimBlock);
 struct data firstDataAsBias(struct data allData, int numIn, int numOut);

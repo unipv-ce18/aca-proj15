@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "seriale.h"
-#include "readFile.h"
+#include "readData.h"
 
 
 int main() {
