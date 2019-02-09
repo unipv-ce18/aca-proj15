@@ -4,7 +4,7 @@
 
 
 int main() {
-    int numIn=11, numOut=1, numPat;
+    int numIn=11, numOut=9, numPat;
 
     struct data *allData;
     allData=readData(numIn, numOut, &numPat);
