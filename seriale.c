@@ -111,7 +111,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
         for (int z=1;z<numPattern;z++){
             double deltaAccuracy=fabs(allData[z].out[1]- (roundf((float) (Output[z][1] * 10)) / 10));
 
-            if(deltaAccuracy<0.1) {
+            if(deltaAccuracy<0.05) {
                 sensitivity++;
             } else{
                 accuracy+=deltaAccuracy;
