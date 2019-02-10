@@ -25,16 +25,18 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
 
 
     WeightIH=readInitialWeightIH(numIn, NumHidden);
+    WeightHO= readInitialWeightHO(NumHidden, numOut);
 
-    for( j = 1 ; j <= NumHidden ; j++ ) {
-        for( i = 0 ; i <= numIn ; i++ ) {
+
+    for( i = 0 ; i <= numIn ; i++ ) {
+        for( j = 1 ; j <= NumHidden ; j++ ) {
             DeltaWeightIH[i][j] = 0.0 ;
         }
     }
 
-    WeightHO= readInitialWeightHO(NumHidden, numOut);
-    for( k = 1 ; k <= numOut ; k ++ ) {
-        for( j = 0 ; j <= NumHidden ; j++ ) {
+
+    for( j = 0 ; j <= NumHidden ; j++ ) {
+        for( k = 1 ; k <= numOut ; k ++ ) {
             DeltaWeightHO[j][k] = 0.0 ;
         }
     }
