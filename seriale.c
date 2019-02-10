@@ -19,26 +19,23 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     double SumO[numPattern+1][numOut+1], **WeightHO, Output[numPattern+1][numOut+1];
     double DeltaO[numOut+1], SumDOW[NUMHID+1], DeltaH[NUMHID+1];
     double DeltaWeightIH[numIn+1][NUMHID+1], DeltaWeightHO[NUMHID+1][numOut+1];
-    double Error, eta = 0.02, alpha = 0.1, smallwt = 0.7;
+    double Error, eta = 0.02, alpha = 0.1;
     double accuracy=0, minAccuracy=10.0;
     double sensitivity=0, maxSensitivity=0;
 
 
     WeightIH=readInitialWeightIH(numIn, NumHidden);
 
-    for( j = 1 ; j <= NumHidden ; j++ ) {    // initialize WeightIH and DeltaWeightIH
+    for( j = 1 ; j <= NumHidden ; j++ ) {
         for( i = 0 ; i <= numIn ; i++ ) {
             DeltaWeightIH[i][j] = 0.0 ;
-            //WeightIH[i][j] = 2.0 * ( rando() - 0.5 ) * smallwt ;
-            //fprintf(stdout, "\n%-4f", WeightIH[i][j]) ;
         }
     }
 
     WeightHO= readInitialWeightHO(NumHidden, numOut);
-    for( k = 1 ; k <= numOut ; k ++ ) {    /* initialize WeightHO and DeltaWeightHO */
+    for( k = 1 ; k <= numOut ; k ++ ) {
         for( j = 0 ; j <= NumHidden ; j++ ) {
             DeltaWeightHO[j][k] = 0.0 ;
-            //WeightHO[j][k] = 2.0 * ( rando() - 0.5 ) * smallwt ;
         }
     }
 
