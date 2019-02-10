@@ -27,73 +27,114 @@ int parallel(struct data * allData, int numIn, int numOut, int numPattern) {
 
 
     WeightIH=readInitialWeightIH(numIn, NumHidden);
-
-    for( j = 1 ; j <= NumHidden ; j++ ) {
-        for( i = 0 ; i <= numIn ; i++ ) {
-            DeltaWeightIH[i][j] = 0.0 ;
-        }
-    }
-
     WeightHO= readInitialWeightHO(NumHidden, numOut);
-    for( k = 1 ; k <= numOut ; k ++ ) {
-        for( j = 0 ; j <= NumHidden ; j++ ) {
-            DeltaWeightHO[j][k] = 0.0 ;
+
+    double start = omp_get_wtime();
+
+    #pragma omp parallel
+    {
+
+        #pragma omp for collapse(2) nowait
+        for (i = 0; i <= numIn; i++) {
+            for (j = 1; j <= NumHidden; j++) {
+                DeltaWeightIH[i][j] = 0.0;
+            }
+        }
+
+        #pragma omp for collapse(2)
+        for (j = 0; j <= NumHidden; j++) {
+            for (k = 1; k <= numOut; k++) {
+                DeltaWeightHO[j][k] = 0.0;
+            }
         }
     }
 
-    for( epoch = 0 ; epoch < 5000 ; epoch++) {    /* iterate weight updates */
-        for( p = 1 ; p <= numPattern ; p++ ) {    /* randomize order of training patterns */
-            ranpat[p] = p ;
+    for( epoch = 0 ; epoch < 5000 ; epoch++) {
+
+            /* iterate weight updates */
+        //#pragma omp parallel
+        {
+            //#pragma omp for
+            for (p = 1; p <= numPattern; p++) {    /* randomize order of training patterns */
+                ranpat[p] = p;
+            }
         }
-        for( p = 1 ; p <= numPattern ; p++) {
-            np = (int) (p + rando() * (numPattern + 1 - p ));
-            op = ranpat[p] ; ranpat[p] = ranpat[np] ; ranpat[np] = op ;
-        }
+            //#pragma omp for reduction(+: np)  private(op)
+            for (p = 1; p <= numPattern; p++) {
+                np = (int) (p + rando() * (numPattern + 1 - p));
+                op = ranpat[p];
+                ranpat[p] = ranpat[np];
+                ranpat[np] = op;
+            }
+
+
         Error = 0.0 ;
+        #pragma omp parallel for private(p, j, i, k, SumDOW, DeltaO, DeltaH) firstprivate( DeltaWeightIH, DeltaWeightHO) lastprivate(DeltaWeightIH, DeltaWeightHO)
         for( np = 1 ; np <= numPattern ; np++ ) {    /* repeat for all the training patterns */
             p = ranpat[np];
+            double **WeightIH2=WeightIH;
+            double **WeightHO2=WeightHO;
+
+
             for( j = 1 ; j <= NumHidden ; j++ ) {    /* compute hidden unit activations */
-                SumH[p][j] = WeightIH[0][j] ;
+                SumH[p][j] = WeightIH2[0][j] ;
+                double sum=0;
                 for( i = 1 ; i <= numIn ; i++ ) {
-                    SumH[p][j] += allData[p].in[i] * WeightIH[i][j] ;
+                    sum += allData[p].in[i] * WeightIH2[i][j] ;
                 }
+                SumH[p][j]+=sum;
                 Hidden[p][j] = 1.0/(1.0 + exp(-SumH[p][j])) ;
             }
+
+            //#pragma omp parallel for
             for( k = 1 ; k <= numOut ; k++ ) {    /* compute output unit activations and errors */
-                SumO[p][k] = WeightHO[0][k] ;
+                SumO[p][k] = WeightHO2[0][k] ;
+                //#pragma omp parallel for
                 for( j = 1 ; j <= NumHidden ; j++ ) {
-                    SumO[p][k] += Hidden[p][j] * WeightHO[j][k] ;
+                    SumO[p][k] += Hidden[p][j] * WeightHO2[j][k] ;
                 }
 
-                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
-                Error -= ( allData[p].out[k] * log( Output[p][k] ) + ( 1.0 - allData[p].out[k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error UTILE PER PROBABILITY OUTPUT*/
+                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs*/
+                double newError=( allData[p].out[k] * log( Output[p][k] ) + ( 1.0 - allData[p].out[k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error*/
+
+                #pragma omp atomic
+                Error -= newError;
                 DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
             }
 
 
-            for( j = 1 ; j <= NumHidden ; j++ ) {    /* 'back-propagate' errors to hidden layer */
-                SumDOW[j] = 0.0 ;
-                for( k = 1 ; k <= numOut ; k++ ) {
-                    SumDOW[j] += WeightHO[j][k] * DeltaO[k] ;
+
+            for (j = 1; j <= NumHidden; j++) {    /* 'back-propagate' errors to hidden layer */
+                SumDOW[j] = 0.0;
+                for (k = 1; k <= numOut; k++) {
+                    SumDOW[j] += WeightHO2[j][k] * DeltaO[k];
                 }
-                DeltaH[j] = SumDOW[j] * Hidden[p][j] * (1.0 - Hidden[p][j]) ;
+                DeltaH[j] = SumDOW[j] * Hidden[p][j] * (1.0 - Hidden[p][j]);
             }
-            for( j = 1 ; j <= NumHidden ; j++ ) {     /* update weights WeightIH */
-                DeltaWeightIH[0][j] = eta * DeltaH[j] + alpha * DeltaWeightIH[0][j] ;
-                WeightIH[0][j] += DeltaWeightIH[0][j] ;
-                for( i = 1 ; i <= numIn ; i++ ) {
+            for (j = 1; j <= NumHidden; j++) {     /* update weights WeightIH */
+                DeltaWeightIH[0][j] = eta * DeltaH[j] + alpha * DeltaWeightIH[0][j];
+                WeightIH2[0][j] += DeltaWeightIH[0][j];
+                for (i = 1; i <= numIn; i++) {
                     DeltaWeightIH[i][j] = eta * allData[p].in[i] * DeltaH[j] + alpha * DeltaWeightIH[i][j];
-                    WeightIH[i][j] += DeltaWeightIH[i][j] ;
+                    WeightIH2[i][j] += DeltaWeightIH[i][j];
                 }
             }
-            for( k = 1 ; k <= numOut ; k ++ ) {    /* update weights WeightHO */
-                DeltaWeightHO[0][k] = eta * DeltaO[k] + alpha * DeltaWeightHO[0][k] ;
-                WeightHO[0][k] += DeltaWeightHO[0][k] ;
-                for( j = 1 ; j <= NumHidden ; j++ ) {
-                    DeltaWeightHO[j][k] = eta * Hidden[p][j] * DeltaO[k] + alpha * DeltaWeightHO[j][k] ;
-                    WeightHO[j][k] += DeltaWeightHO[j][k] ;
+            for (k = 1; k <= numOut; k++) {    /* update weights WeightHO */
+                DeltaWeightHO[0][k] = eta * DeltaO[k] + alpha * DeltaWeightHO[0][k];
+                WeightHO2[0][k] += DeltaWeightHO[0][k];
+                for (j = 1; j <= NumHidden; j++) {
+                    DeltaWeightHO[j][k] = eta * Hidden[p][j] * DeltaO[k] + alpha * DeltaWeightHO[j][k];
+                    WeightHO2[j][k] += DeltaWeightHO[j][k];
                 }
             }
+
+//#pragma omp critical
+            {
+                WeightIH = WeightIH2;
+                WeightHO = WeightHO2;
+            }
+
+
         }
 
         accuracy=0;
@@ -136,8 +177,7 @@ int parallel(struct data * allData, int numIn, int numOut, int numPattern) {
         //break ;  /* stop learning when 'near enough' */
     }
 
-    fprintf(stdout, "\nminAcc=%-4f,\t", minAccuracy) ;
-    fprintf(stdout, "maxSens=%-4f", maxSensitivity) ;
+
     //printf(stdout, "\n\nNETWORK DATA - EPOCH %d\n\nPat\t", epoch) ;   /* print network outputs */
     /*for( i = 1 ; i <= numIn ; i++ ) {
         fprintf(stdout, "Input%-4d\t", i) ;
@@ -146,15 +186,31 @@ int parallel(struct data * allData, int numIn, int numOut, int numPattern) {
         fprintf(stdout, "Target%-4d\tOutput%-4d\t", k, k) ;
     }*/
     for( p = 1 ; p <= 10 ; p++ ) {
-        fprintf(stdout, "\n%d\t", p) ;
+        fprintf(stdout, "\n\n%d\t", p) ;
         /*for( i = 1 ; i <= numIn ; i++ ) {
             fprintf(stdout, "%f\t", allData[p].in[i]) ;
         }*/
-        fprintf(stdout, "\n\n\n") ;
         for( k = 1 ; k <= numOut ; k++ ) {
             fprintf(stdout, "\n%f\t%f\t", allData[p].out[k], Output[p][k]) ;
         }
     }
+    double time = omp_get_wtime()-start;
+
+    //if((minAccuracy-1.3081969)<0.000001 && (maxSensitivity-0.6460289)<0.000001) {
+        fprintf(stdout, "\ntempo=%-4f", time);
+        double oldTime = 30.396000;
+        double deltaT = oldTime - time;
+        if (deltaT > 0) {
+            fprintf(stdout, "\nMIGLIORATO di %-4f", deltaT);
+        } else {
+            fprintf(stdout, "\nPEGGIORATO di %-4f", deltaT);
+        }
+
+    //}else {
+
+        fprintf(stdout, "\nERRORE\nminAcc=%-4f,\t", minAccuracy);
+        fprintf(stdout, "maxSens=%-4f", maxSensitivity);
+    //}
 
     for (int c=0;c<numPattern;c++){
         free(allData[c].out);
