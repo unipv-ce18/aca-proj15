@@ -76,34 +76,39 @@ int parallel(struct data * allData, int numIn, int numOut, int numPattern) {
             double **WeightHO2=WeightHO;
 
 
-            for( j = 1 ; j <= NumHidden ; j++ ) {    /* compute hidden unit activations */
-                SumH[p][j] = WeightIH2[0][j] ;
-                double sum=0;
-                for( i = 1 ; i <= numIn ; i++ ) {
-                    sum += allData[p].in[i] * WeightIH2[i][j] ;
+
+//#pragma omp parallel for private (i, j)
+            for (j = 1; j <= NumHidden; j++) {    /* compute hidden unit activations */
+                SumH[p][j] = WeightIH2[0][j];
+                double sum = 0;
+                for (i = 1; i <= numIn; i++) {
+                    sum += allData[p].in[i] * WeightIH2[i][j];
                 }
-                SumH[p][j]+=sum;
-                Hidden[p][j] = 1.0/(1.0 + exp(-SumH[p][j])) ;
+                SumH[p][j] += sum;
+                Hidden[p][j] = 1.0 / (1.0 + exp(-SumH[p][j]));
             }
 
-            //#pragma omp parallel for
-            for( k = 1 ; k <= numOut ; k++ ) {    /* compute output unit activations and errors */
-                SumO[p][k] = WeightHO2[0][k] ;
+            double newError = 0;
+          //  #pragma omp parallel for reduction(+:newError) private(j)
+            for (k = 1; k <= numOut; k++) {    /* compute output unit activations and errors */
+                SumO[p][k] = WeightHO2[0][k];
                 //#pragma omp parallel for
-                for( j = 1 ; j <= NumHidden ; j++ ) {
-                    SumO[p][k] += Hidden[p][j] * WeightHO2[j][k] ;
+                for (j = 1; j <= NumHidden; j++) {
+                    SumO[p][k] += Hidden[p][j] * WeightHO2[j][k];
                 }
 
-                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs*/
-                double newError=( allData[p].out[k] * log( Output[p][k] ) + ( 1.0 - allData[p].out[k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error*/
+                Output[p][k] = 1.0 / (1.0 + exp(-SumO[p][k]));   /* Sigmoidal Outputs*/
+                newError += (allData[p].out[k] * log(Output[p][k]) +
+                             (1.0 - allData[p].out[k]) * log(1.0 - Output[p][k]));    /*Cross-Entropy Error*/
 
-                #pragma omp atomic
-                Error -= newError;
+
                 DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
-            }
 
 
 
+            #pragma omp atomic
+            Error -= newError;
+        }
             for (j = 1; j <= NumHidden; j++) {    /* 'back-propagate' errors to hidden layer */
                 SumDOW[j] = 0.0;
                 for (k = 1; k <= numOut; k++) {
