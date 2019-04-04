@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <ctype.h>
-#include "readFile.h"
+#include "readData.h"
 
 struct data * allocateFirstBlock(struct data *allData, int dimBlock);
 struct data firstDataAsBias(struct data allData, int numIn, int numOut);
@@ -62,6 +62,16 @@ struct data * readData(int numIn, int numOut, int* numPat)
     fclose(fd);
 
     *numPat=n-1;
+
+    for(int p=0; p<n;p++) {
+        for(int k=0; k<=numOut;k++) {
+            if (allData[p].out[k] < 1.1 && allData[p].out[k] > 0.9) {
+                allData[p].out[k] = 1.0;
+            } else {
+                allData[p].out[k] = 0.0;
+            }
+        }
+    }
 
     return allData;
 }

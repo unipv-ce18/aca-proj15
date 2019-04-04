@@ -3,41 +3,45 @@
 #include <time.h>
 #include <math.h>
 #include <fcntl.h>
-#include "readFile.h"
+#include "readData.h"
 #include "seriale.h"
+#include "readInitialWeight.h"
 
 
-#define NUMHID 5
+#define NUMHID 7
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
-
-#define max(a,b)  (((a) > (b)) ? (a) : (b))
 
 int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     int    i, j, k, p, np, op, ranpat[numPattern+1], epoch;
     int    NumHidden = NUMHID;
-    double SumH[numPattern+1][NUMHID+1], WeightIH[numIn+1][NUMHID+1], Hidden[numPattern+1][NUMHID+1];
-    double SumO[numPattern+1][numOut+1], WeightHO[NUMHID+1][numOut+1], Output[numPattern+1][numOut+1];
+    double SumH[numPattern+1][NUMHID+1], **WeightIH, Hidden[numPattern+1][NUMHID+1];
+    double SumO[numPattern+1][numOut+1], **WeightHO, Output[numPattern+1][numOut+1];
     double DeltaO[numOut+1], SumDOW[NUMHID+1], DeltaH[NUMHID+1];
     double DeltaWeightIH[numIn+1][NUMHID+1], DeltaWeightHO[NUMHID+1][numOut+1];
-    double Error, eta = 0.1, alpha = 0.1, smallwt = 0.2;
-    double accuracy, minAccuracy=1.0;
-    double sensitivity, maxSensitivity=0;
+    double Error, eta = 0.02, alpha = 0;
+    double accuracy=0, minAccuracy=10.0;
+    double sensitivity=0, maxSensitivity=0;
 
-    for( j = 1 ; j <= NumHidden ; j++ ) {    /* initialize WeightIH and DeltaWeightIH */
-        for( i = 0 ; i <= numIn ; i++ ) {
+
+    WeightIH=readInitialWeightIH(numIn, NumHidden);
+    WeightHO= readInitialWeightHO(NumHidden, numOut);
+
+
+    for( i = 0 ; i <= numIn ; i++ ) {
+        for( j = 1 ; j <= NumHidden ; j++ ) {
             DeltaWeightIH[i][j] = 0.0 ;
-            WeightIH[i][j] = 2.0 * ( rando() - 0.5 ) * smallwt ;
-        }
-    }
-    for( k = 1 ; k <= numOut ; k ++ ) {    /* initialize WeightHO and DeltaWeightHO */
-        for( j = 0 ; j <= NumHidden ; j++ ) {
-            DeltaWeightHO[j][k] = 0.0 ;
-            WeightHO[j][k] = 2.0 * ( rando() - 0.5 ) * smallwt ;
         }
     }
 
-    for( epoch = 0 ; epoch < 10000 ; epoch++) {    /* iterate weight updates */
+
+    for( j = 0 ; j <= NumHidden ; j++ ) {
+        for( k = 1 ; k <= numOut ; k ++ ) {
+            DeltaWeightHO[j][k] = 0.0 ;
+        }
+    }
+
+    for( epoch = 0 ; epoch < 7000 ; epoch++) {    /* iterate weight updates */
         for( p = 1 ; p <= numPattern ; p++ ) {    /* randomize order of training patterns */
             ranpat[p] = p ;
         }
@@ -61,26 +65,12 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
                     SumO[p][k] += Hidden[p][j] * WeightHO[j][k] ;
                 }
 
-//                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
-/*                double expSum=0;
-                for( int h = 1 ; h <= numOut ; h++ ) {expSum+=SumO[p][h];}
-                Output[p][k] = exp(-SumO[p][k])/expSum;   /* Soft max  utile se si hanno più output*/
-//                Output[p][k] = SumO[p][k];    /*  Linear Outputs */
-                if(SumO[p][k]<0) { /*  Relu Outputs */
-                    Output[p][k] = 0;
-                }else {
-                    Output[p][k] = SumO[p][k];
-                }
-//                Output[p][k] = log(1+exp(SumO[p][k]));
-//                Output[p][k] = max(0, SumO[p][k]);
-
-                Error += 0.5 * (allData[p].out[k] - Output[p][k]) * (allData[p].out[k] - Output[p][k]) ;   /* SSE */
-//                Error -= ( allData[p].out[k] * log( Output[p][k] ) + ( 1.0 - allData[p].out[k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error UTILE PER PROBABILITY OUTPUT*/
-
-//                DeltaO[k] = (allData[p].out[k] - Output[p][k]) * Output[p][k] * (1.0 - Output[p][k]) ;   /* Sigmoidal Outputs, SSE */
-//                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
-                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Linear Outputs, SSE */
+                Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
+                Error -= ( allData[p].out[k] * log( Output[p][k] ) + ( 1.0 - allData[p].out[k] ) * log( 1.0 - Output[p][k] ) ) ;    /*Cross-Entropy Error UTILE PER PROBABILITY OUTPUT*/
+                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
             }
+
+
             for( j = 1 ; j <= NumHidden ; j++ ) {    /* 'back-propagate' errors to hidden layer */
                 SumDOW[j] = 0.0 ;
                 for( k = 1 ; k <= numOut ; k++ ) {
@@ -106,20 +96,33 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
             }
         }
 
-        accuracy=0;
-        sensitivity=0;
-        for (int z=1;z<numPattern;z++){
-            double deltaAccuracy=fabs(allData[z].out[1]- (roundf((float) (Output[z][1] * 10)) / 10));
+        accuracy=0; // di quanto è sbagliato ( ho sbagliato il calcolo)
+        sensitivity=0;  //quante volte sbaglia
 
-            if(deltaAccuracy<0.05) {
+        for(int pat=1;pat<numPattern;pat++) {
+            int class = 0;
+            for (int z = 1; z <= numOut; z++) {
+                if (allData[pat].out[z] < 1.1 && allData[pat].out[z] > 0.9){
+                    class=z;
+                }
+            }
+            int wrong=0;
+            double prob= Output[pat][class];
+            for (int z = 1; z <= numOut; z++) {
+                if (Output[pat][z] > prob && z!=class){
+                    wrong++;
+                }
+            }
+
+            if(wrong>0){
+                accuracy+=wrong; // in realtà non è detto, dovrei guardare quello di prob max e vedere di quanto è diverso
                 sensitivity++;
-            } else{
-                accuracy+=deltaAccuracy;
             }
         }
 
-        accuracy=accuracy/(numPattern-1-sensitivity);
-        sensitivity=sensitivity/(numPattern-1);
+        accuracy=accuracy/(sensitivity);
+        sensitivity=(numPattern-sensitivity)/numPattern;
+
 
         if(minAccuracy>accuracy)
             minAccuracy=accuracy;
@@ -127,32 +130,32 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
         if(maxSensitivity<sensitivity)
             maxSensitivity=sensitivity;
 
-        //if( epoch%100 == 0 )
-            //fprintf(stdout, "\nEpoch %-5d :   Error = %f, accuracy = %f, sensitivity = %f", epoch, Error/(numPattern-1), accuracy, sensitivity) ;
-        if( accuracy < (0.01) )
-            break ;  /* stop learning when 'near enough' */
+        if( epoch%100 == 0 )
+            fprintf(stdout, "\nEpoch %-5d :   Error = %f\tminAcc=%-4f,\tmaxSens=%-4f,\t", epoch, Error/numPattern, accuracy, sensitivity) ;
+        //if( accuracy < (0.01) )
+            //break ;  /* stop learning when 'near enough' */
     }
 
-    fprintf(stdout, "\n%-4f;%-4f;%-4f", eta, alpha, smallwt) ;
-    fprintf(stdout, ";%-4f", minAccuracy) ;
-    fprintf(stdout, ";%-4f", maxSensitivity) ;
+    fprintf(stdout, "\nminAcc=%-4f,\t", minAccuracy) ;
+    fprintf(stdout, "maxSens=%-4f", maxSensitivity) ;
     //printf(stdout, "\n\nNETWORK DATA - EPOCH %d\n\nPat\t", epoch) ;   /* print network outputs */
     /*for( i = 1 ; i <= numIn ; i++ ) {
         fprintf(stdout, "Input%-4d\t", i) ;
     }
     for( k = 1 ; k <= numOut ; k++ ) {
         fprintf(stdout, "Target%-4d\tOutput%-4d\t", k, k) ;
-    }
-    for( p = 1 ; p <= 100 ; p++ ) {
+    }*/
+    for( p = 1 ; p <= 10 ; p++ ) {
         fprintf(stdout, "\n%d\t", p) ;
-        for( i = 1 ; i <= numIn ; i++ ) {
+        /*for( i = 1 ; i <= numIn ; i++ ) {
             fprintf(stdout, "%f\t", allData[p].in[i]) ;
-        }
+        }*/
+        fprintf(stdout, "\n\n\n") ;
         for( k = 1 ; k <= numOut ; k++ ) {
-            fprintf(stdout, "%f\t%f\t", allData[p].out[k], Output[p][k]) ;
+            fprintf(stdout, "\n%f\t%f\t", allData[p].out[k], Output[p][k]) ;
         }
     }
-    */
+
     for (int c=0;c<numPattern;c++){
         free(allData[c].out);
         free(allData[c].in);
