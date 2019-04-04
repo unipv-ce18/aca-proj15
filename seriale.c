@@ -19,7 +19,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     double SumO[numPattern+1][numOut+1], **WeightHO, Output[numPattern+1][numOut+1];
     double DeltaO[numOut+1], SumDOW[NUMHID+1], DeltaH[NUMHID+1];
     double DeltaWeightIH[numIn+1][NUMHID+1], DeltaWeightHO[NUMHID+1][numOut+1];
-    double Error, eta = 0.02, alpha = 0.1;
+    double Error, eta = 0.02, alpha = 0;
     double accuracy=0, minAccuracy=10.0;
     double sensitivity=0, maxSensitivity=0;
 
@@ -41,7 +41,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
         }
     }
 
-    for( epoch = 0 ; epoch < 5000 ; epoch++) {    /* iterate weight updates */
+    for( epoch = 0 ; epoch < 7000 ; epoch++) {    /* iterate weight updates */
         for( p = 1 ; p <= numPattern ; p++ ) {    /* randomize order of training patterns */
             ranpat[p] = p ;
         }
@@ -96,8 +96,8 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
             }
         }
 
-        accuracy=0;
-        sensitivity=0;
+        accuracy=0; // di quanto è sbagliato ( ho sbagliato il calcolo)
+        sensitivity=0;  //quante volte sbaglia
 
         for(int pat=1;pat<numPattern;pat++) {
             int class = 0;
@@ -115,7 +115,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
             }
 
             if(wrong>0){
-                accuracy+=wrong;
+                accuracy+=wrong; // in realtà non è detto, dovrei guardare quello di prob max e vedere di quanto è diverso
                 sensitivity++;
             }
         }
