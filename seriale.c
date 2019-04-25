@@ -19,7 +19,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     double SumO[numPattern+1][numOut+1], **WeightHO, Output[numPattern+1][numOut+1];
     double DeltaO[numOut+1], SumDOW[NUMHID+1], DeltaH[NUMHID+1];
     double DeltaWeightIH[numIn+1][NUMHID+1], DeltaWeightHO[NUMHID+1][numOut+1];
-    double Error, eta = 0.02, alpha = 0;
+    double Error, eta = 0.02;
     double accuracy=0, minAccuracy=10.0;
     double precision=0, maxprecision=0;
 
@@ -41,7 +41,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
         }
     }
 
-    for( epoch = 0 ; epoch < 7000 ; epoch++) {    /* iterate weight updates */
+    for( epoch = 0 ; epoch < 1000 ; epoch++) {    /* iterate weight updates */
         for( p = 1 ; p <= numPattern ; p++ ) {    /* randomize order of training patterns */
             ranpat[p] = p ;
         }
@@ -79,18 +79,18 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
                 DeltaH[j] = SumDOW[j] * Hidden[p][j] * (1.0 - Hidden[p][j]) ;
             }
             for( j = 1 ; j <= NumHidden ; j++ ) {     /* update weights WeightIH */
-                DeltaWeightIH[0][j] = eta * DeltaH[j] + alpha * DeltaWeightIH[0][j] ;
+                DeltaWeightIH[0][j] = eta * DeltaH[j];
                 WeightIH[0][j] += DeltaWeightIH[0][j] ;
                 for( i = 1 ; i <= numIn ; i++ ) {
-                    DeltaWeightIH[i][j] = eta * allData[p].in[i] * DeltaH[j] + alpha * DeltaWeightIH[i][j];
+                    DeltaWeightIH[i][j] = eta * allData[p].in[i] * DeltaH[j];
                     WeightIH[i][j] += DeltaWeightIH[i][j] ;
                 }
             }
             for( k = 1 ; k <= numOut ; k ++ ) {    /* update weights WeightHO */
-                DeltaWeightHO[0][k] = eta * DeltaO[k] + alpha * DeltaWeightHO[0][k] ;
+                DeltaWeightHO[0][k] = eta * DeltaO[k];
                 WeightHO[0][k] += DeltaWeightHO[0][k] ;
                 for( j = 1 ; j <= NumHidden ; j++ ) {
-                    DeltaWeightHO[j][k] = eta * Hidden[p][j] * DeltaO[k] + alpha * DeltaWeightHO[j][k] ;
+                    DeltaWeightHO[j][k] = eta * Hidden[p][j] * DeltaO[k];
                     WeightHO[j][k] += DeltaWeightHO[j][k] ;
                 }
             }
