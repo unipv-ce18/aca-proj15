@@ -8,7 +8,7 @@
 #include "readInitialWeight.h"
 
 
-#define NUMHID 7
+#define NUMHID 15
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
@@ -137,7 +137,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     }
 
     fprintf(stdout, "\nminAcc=%-4f,\t", minAccuracy) ;
-    fprintf(stdout, "maxPrecision=%-4f", maxprecision) ;
+    fprintf(stdout, "maxPrecision=%-4f\n", maxprecision) ;
     //printf(stdout, "\n\nNETWORK DATA - EPOCH %d\n\nPat\t", epoch) ;   /* print network outputs */
     /*for( i = 1 ; i <= numIn ; i++ ) {
         fprintf(stdout, "Input%-4d\t", i) ;
