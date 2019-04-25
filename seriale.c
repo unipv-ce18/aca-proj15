@@ -21,7 +21,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     double DeltaWeightIH[numIn+1][NUMHID+1], DeltaWeightHO[NUMHID+1][numOut+1];
     double Error, eta = 0.02, alpha = 0;
     double accuracy=0, minAccuracy=10.0;
-    double sensitivity=0, maxSensitivity=0;
+    double precision=0, maxprecision=0;
 
 
     WeightIH=readInitialWeightIH(numIn, NumHidden);
@@ -96,8 +96,8 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
             }
         }
 
-        accuracy=0; // di quanto è sbagliato ( ho sbagliato il calcolo)
-        sensitivity=0;  //quante volte sbaglia
+        accuracy=0; // di quanto è sbagliato
+        precision=0;  //quante volte sbaglia
 
         for(int pat=1;pat<numPattern;pat++) {
             int class = 0;
@@ -109,35 +109,35 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
             int wrong=0;
             double prob= Output[pat][class];
             for (int z = 1; z <= numOut; z++) {
-                if (Output[pat][z] > prob && z!=class){
-                    wrong++;
+                if (Output[pat][z] > prob && z!=class && Output[pat][z] > Output[pat][wrong] ){
+                    wrong=z;
                 }
             }
 
             if(wrong>0){
-                accuracy+=wrong; // in realtà non è detto, dovrei guardare quello di prob max e vedere di quanto è diverso
-                sensitivity++;
+                accuracy+=abs(wrong-class);
+                precision++;
             }
         }
 
-        accuracy=accuracy/(sensitivity);
-        sensitivity=(numPattern-sensitivity)/numPattern;
+        accuracy=accuracy/precision;
+        precision=(numPattern-precision)/numPattern;
 
 
         if(minAccuracy>accuracy)
             minAccuracy=accuracy;
 
-        if(maxSensitivity<sensitivity)
-            maxSensitivity=sensitivity;
+        if(maxprecision<precision)
+            maxprecision=precision;
 
         if( epoch%100 == 0 )
-            fprintf(stdout, "\nEpoch %-5d :   Error = %f\tminAcc=%-4f,\tmaxSens=%-4f,\t", epoch, Error/numPattern, accuracy, sensitivity) ;
+            fprintf(stdout, "\nEpoch %-5d :   Error = %f\tminAcc=%-4f,\tmaxSens=%-4f,\t", epoch, Error/numPattern, accuracy, precision) ;
         //if( accuracy < (0.01) )
             //break ;  /* stop learning when 'near enough' */
     }
 
     fprintf(stdout, "\nminAcc=%-4f,\t", minAccuracy) ;
-    fprintf(stdout, "maxSens=%-4f", maxSensitivity) ;
+    fprintf(stdout, "maxPrecision=%-4f", maxprecision) ;
     //printf(stdout, "\n\nNETWORK DATA - EPOCH %d\n\nPat\t", epoch) ;   /* print network outputs */
     /*for( i = 1 ; i <= numIn ; i++ ) {
         fprintf(stdout, "Input%-4d\t", i) ;
