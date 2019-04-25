@@ -7,8 +7,8 @@
 double** initialWeight(int row, int colomn,  char *fileName);
 
 double** readInitialWeightIH(int numIn, int numHid) {
-    if(numIn>11 || numHid>30){
-        perror("Error, row max is 11 and colomn is 30");
+    if(numIn>11 || numHid>17){
+        perror("Error, imput is 11 and hidden is 17");
         exit(1);
     }
 
@@ -18,8 +18,8 @@ double** readInitialWeightIH(int numIn, int numHid) {
 }
 
 double** readInitialWeightHO(int numHid, int numOut) {
-    if(numHid>11 || numOut>30){
-        perror("Error, row max is 11 and colomn is 30");
+    if(numHid>17 || numOut>30){
+        perror("Error, hidden max is 17 and out is 30");
         exit(1);
     }
 
