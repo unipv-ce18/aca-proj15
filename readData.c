@@ -18,7 +18,7 @@ struct data readAllDigit(char* line, struct data data, int numIn);
  * @param int umIn int numOut int* patternsnumPat IT RETURN THE NUMBER OF PATTERN
  * @return array of struct data
  */
-struct data * readData(int numIn, int numOut, int* numPat)
+struct data * readData(int numIn, int numOut, int* numPat, char* fileName)
 {
     int n=0;
     struct data *allData = NULL;
@@ -30,7 +30,7 @@ struct data * readData(int numIn, int numOut, int* numPat)
 
     FILE *fd;
     char buf[200];
-    char *fileName="data.csv";
+    //char *fileName="data.csv";
 
     dimstruct = sizeof(struct data);
     dimBlock = nb * dimstruct;
