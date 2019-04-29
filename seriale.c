@@ -12,9 +12,9 @@
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
-int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
+double*** seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     int    i, j, k, p, np, op, ranpat[numPattern+1], epoch;
-    int    NumHidden = NUMHID;
+    int    numHid = NUMHID;
     double SumH[numPattern+1][NUMHID+1], **WeightIH, Hidden[numPattern+1][NUMHID+1];
     double SumO[numPattern+1][numOut+1], **WeightHO, Output[numPattern+1][numOut+1];
     double DeltaO[numOut+1], SumDOW[NUMHID+1], DeltaH[NUMHID+1];
@@ -22,20 +22,19 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     double Error, eta = 0.02;
     double accuracy=0, minAccuracy=10.0;
     double precision=0, maxprecision=0;
+    double bestOverAll=0, **bestWeightIH, **bestWeightHO;
 
-
-    WeightIH=readInitialWeightIH(numIn, NumHidden);
-    WeightHO= readInitialWeightHO(NumHidden, numOut);
-
+    WeightIH=readInitialWeightIH(numIn, numHid);
+    WeightHO= readInitialWeightHO(numHid, numOut);
 
     for( i = 0 ; i <= numIn ; i++ ) {
-        for( j = 1 ; j <= NumHidden ; j++ ) {
+        for( j = 1 ; j <= numHid ; j++ ) {
             DeltaWeightIH[i][j] = 0.0 ;
         }
     }
 
 
-    for( j = 0 ; j <= NumHidden ; j++ ) {
+    for( j = 0 ; j <= numHid ; j++ ) {
         for( k = 1 ; k <= numOut ; k ++ ) {
             DeltaWeightHO[j][k] = 0.0 ;
         }
@@ -52,7 +51,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
         Error = 0.0 ;
         for( np = 1 ; np <= numPattern ; np++ ) {    /* repeat for all the training patterns */
             p = ranpat[np];
-            for( j = 1 ; j <= NumHidden ; j++ ) {    /* compute hidden unit activations */
+            for( j = 1 ; j <= numHid ; j++ ) {    /* compute hidden unit activations */
                 SumH[p][j] = WeightIH[0][j] ;
                 for( i = 1 ; i <= numIn ; i++ ) {
                     SumH[p][j] += allData[p].in[i] * WeightIH[i][j] ;
@@ -61,7 +60,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
             }
             for( k = 1 ; k <= numOut ; k++ ) {    /* compute output unit activations and errors */
                 SumO[p][k] = WeightHO[0][k] ;
-                for( j = 1 ; j <= NumHidden ; j++ ) {
+                for( j = 1 ; j <= numHid ; j++ ) {
                     SumO[p][k] += Hidden[p][j] * WeightHO[j][k] ;
                 }
 
@@ -71,14 +70,14 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
             }
 
 
-            for( j = 1 ; j <= NumHidden ; j++ ) {    /* 'back-propagate' errors to hidden layer */
+            for( j = 1 ; j <= numHid ; j++ ) {    /* 'back-propagate' errors to hidden layer */
                 SumDOW[j] = 0.0 ;
                 for( k = 1 ; k <= numOut ; k++ ) {
                     SumDOW[j] += WeightHO[j][k] * DeltaO[k] ;
                 }
                 DeltaH[j] = SumDOW[j] * Hidden[p][j] * (1.0 - Hidden[p][j]) ;
             }
-            for( j = 1 ; j <= NumHidden ; j++ ) {     /* update weights WeightIH */
+            for( j = 1 ; j <= numHid ; j++ ) {     /* update weights WeightIH */
                 DeltaWeightIH[0][j] = eta * DeltaH[j];
                 WeightIH[0][j] += DeltaWeightIH[0][j] ;
                 for( i = 1 ; i <= numIn ; i++ ) {
@@ -89,7 +88,7 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
             for( k = 1 ; k <= numOut ; k ++ ) {    /* update weights WeightHO */
                 DeltaWeightHO[0][k] = eta * DeltaO[k];
                 WeightHO[0][k] += DeltaWeightHO[0][k] ;
-                for( j = 1 ; j <= NumHidden ; j++ ) {
+                for( j = 1 ; j <= numHid ; j++ ) {
                     DeltaWeightHO[j][k] = eta * Hidden[p][j] * DeltaO[k];
                     WeightHO[j][k] += DeltaWeightHO[j][k] ;
                 }
@@ -122,6 +121,13 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
 
         accuracy=accuracy/precision;
         precision=(numPattern-precision)/numPattern;
+
+        double score= precision/accuracy;
+        if(score>bestOverAll){
+            bestOverAll=score;
+            bestWeightHO=WeightHO;
+            bestWeightIH=WeightIH;
+        }
 
 
         if(minAccuracy>accuracy)
@@ -162,6 +168,27 @@ int seriale(struct data * allData, int numIn, int numOut, int numPattern) {
     }
     free(allData);
 
-    return 1 ;
+    for (int c=0;c<numIn;c++){
+        free(WeightIH[c]);
+    }
+    free(WeightIH);
+    
+    for (int c=0;c<numHid;c++){
+        free(WeightHO[c]);
+    }
+    free(WeightHO);
+
+    double  ***bestWeight= (double ***)malloc(2 * sizeof(double**));
+    bestWeight[0]= (double **)malloc(numIn * sizeof(double*));
+    bestWeight[1]= (double **)malloc(numHid * sizeof(double*));
+    for(int i = 0; i <=numIn; i++) bestWeight[0][i] = (double *)malloc(numHid * sizeof(double));
+    for(int i = 0; i <=numHid; i++) bestWeight[1][i] = (double *)malloc(numOut * sizeof(double));
+    bestWeight[0]=bestWeightIH;
+    bestWeight[1]=bestWeightHO;
+    printf("prova %f\n\n", bestWeight[0][4][10]);
+
+
+    return bestWeight ;
+
 }
 

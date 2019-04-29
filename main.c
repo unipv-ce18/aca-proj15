@@ -12,7 +12,8 @@ int main() {
 
     printf("e' gia' qualcosa\n\n");
 
-    seriale(allData, numIn, numOut, numPat);
+    double ***bestWeight=seriale(allData, numIn, numOut, numPat);
+    printf("prova %f\n\n", bestWeight[0][4][10]);
     //parallel(allData, numIn, numOut, numPat);
 
     return 0;
