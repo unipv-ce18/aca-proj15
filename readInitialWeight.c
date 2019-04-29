@@ -8,7 +8,7 @@ double** initialWeight(int row, int colomn,  char *fileName);
 
 double** readInitialWeightIH(int numIn, int numHid) {
     if(numIn>11 || numHid>29){
-        perror("Error, imput is 11 and hidden is 17");
+        perror("Error, input is 11 and hidden is 17");
         exit(1);
     }
 
@@ -36,6 +36,7 @@ double** initialWeight(int row, int colomn,  char *fileName) {
     double  **Weight= (double **)malloc(row * sizeof(double*));
     for(int i = 0; i <=row; i++) Weight[i] = (double *)malloc(colomn * sizeof(double));
 
+
     FILE *fd;
     char buf[200];
 
@@ -48,7 +49,7 @@ double** initialWeight(int row, int colomn,  char *fileName) {
 
     for( int j = 0 ; j < row ; j++ ) {
         if(fgets(buf, 200, fd)==NULL) {
-            perror("Error, someting got wrong");
+            perror("Error, something got wrong");
             exit(1);
         }
 
@@ -64,6 +65,7 @@ double** initialWeight(int row, int colomn,  char *fileName) {
         }
 
     }
+    fclose(fd);
 
     return Weight;
 
