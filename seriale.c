@@ -181,8 +181,8 @@ double*** seriale(struct data * allData, int numIn, int numOut, int numPattern) 
     double  ***bestWeight= (double ***)malloc(2 * sizeof(double**));
     bestWeight[0]= (double **)malloc(numIn * sizeof(double*));
     bestWeight[1]= (double **)malloc(numHid * sizeof(double*));
-    for(int i = 0; i <=numIn; i++) bestWeight[0][i] = (double *)malloc(numHid * sizeof(double));
-    for(int i = 0; i <=numHid; i++) bestWeight[1][i] = (double *)malloc(numOut * sizeof(double));
+    for(int i = 0; i <=numIn+1; i++) bestWeight[0][i] = (double *)malloc(numHid * sizeof(double));
+    for(int i = 0; i <=numHid+1; i++) bestWeight[1][i] = (double *)malloc(numOut * sizeof(double));
     bestWeight[0]=bestWeightIH;
     bestWeight[1]=bestWeightHO;
     printf("prova %f\n\n", bestWeight[0][4][10]);
