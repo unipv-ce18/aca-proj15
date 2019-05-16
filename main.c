@@ -16,8 +16,6 @@ int main() {
     char *fileNameDataTest="dataTest.csv";
     allDataTest=readData(numIn, numOut, &numPatTest, fileNameDataTest);
 
-    printf("e' gia' qualcosa\n\n");
-
     //double ***bestWeight=seriale(allData, numIn, numHid, numOut, numPat);
     double ***bestWeight=parallel(allData, numIn, numHid, numOut, numPat);
 
