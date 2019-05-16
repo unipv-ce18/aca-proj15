@@ -7,18 +7,14 @@
 #include "seriale.h"
 #include "readInitialWeight.h"
 
-
-#define NUMHID 15
-
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
-double*** seriale(struct data * allData, int numIn, int numOut, int numPattern) {
+double*** seriale(struct data * allData, int numIn, int numHid, int numOut, int numPattern) {
     int    i, j, k, p, np, op, ranpat[numPattern+1], epoch;
-    int    numHid = NUMHID;
-    double SumH[numPattern+1][NUMHID+1], **WeightIH, Hidden[numPattern+1][NUMHID+1];
+    double SumH[numPattern+1][numHid+1], **WeightIH, Hidden[numPattern+1][numHid+1];
     double SumO[numPattern+1][numOut+1], **WeightHO, Output[numPattern+1][numOut+1];
-    double DeltaO[numOut+1], SumDOW[NUMHID+1], DeltaH[NUMHID+1];
-    double DeltaWeightIH[numIn+1][NUMHID+1], DeltaWeightHO[NUMHID+1][numOut+1];
+    double DeltaO[numOut+1], SumDOW[numHid+1], DeltaH[numHid+1];
+    double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut+1];
     double Error, eta = 0.02;
     double accuracy=0, minAccuracy=10.0;
     double precision=0, maxprecision=0;

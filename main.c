@@ -7,7 +7,7 @@
 
 
 int main() {
-    int numIn=11, numOut=9, numPat, numPatTest;
+    int numIn=11, numHid=15, numOut=9, numPat, numPatTest;
 
     struct data *allData, *allDataTest;
     char *fileNameData="data.csv";
@@ -18,10 +18,10 @@ int main() {
 
     printf("e' gia' qualcosa\n\n");
 
-    //double ***bestWeight=seriale(allData, numIn, numOut, numPat);
-    double ***bestWeight=parallel(allData, numIn, numOut, numPat);
+    //double ***bestWeight=seriale(allData, numIn, numHid, numOut, numPat);
+    double ***bestWeight=parallel(allData, numIn, numHid, numOut, numPat);
 
-    serialeTest(allDataTest, numIn, numOut, numPatTest, bestWeight);
+    serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, bestWeight);
     free(bestWeight);
 
 

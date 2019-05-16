@@ -7,19 +7,17 @@
 #include "readInitialWeight.h"
 #include "serialeTest.h"
 
-#define NUMHID 15
-
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
-int serialeTest(struct data * allData, int numIn, int numOut, int numPattern, double ***Weight) {
+int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int numPattern, double ***Weight) {
     int    i, j, k, p;
-    int    numHid = NUMHID;
-    double SumH[numPattern+1][NUMHID+1], Hidden[numPattern+1][NUMHID+1];
+    double SumH[numPattern+1][numHid+1], Hidden[numPattern+1][numHid+1];
     double SumO[numPattern+1][numOut+1], Output[numPattern+1][numOut+1];
     double accuracy=0;
     double precision=0;
-
+    fprintf(stdout, "prova0") ;
     for( p = 1 ; p <= numPattern ; p++ ) {    /* repeat for all the training patterns */
+        fprintf(stdout, "\nprova pat%d\t", p) ;
         for( j = 1 ; j <= numHid ; j++ ) {    /* compute hidden unit activations */
 
             SumH[p][j] = Weight[0][0][j];
@@ -37,6 +35,7 @@ int serialeTest(struct data * allData, int numIn, int numOut, int numPattern, do
         }
     }
 
+    fprintf(stdout, "prova1") ;
     accuracy=0; // di quanto è sbagliato
     precision=0;  //quante volte sbaglia
 
