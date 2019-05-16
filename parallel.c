@@ -53,7 +53,7 @@ double*** parallel(struct data * allData, int numIn, int numHid, int numOut, int
         }
 
         Error = 0.0 ;
-//#pragma omp parallel for private(p, j, i, k, SumDOW, DeltaO, DeltaH) firstprivate( DeltaWeightIH, DeltaWeightHO) lastprivate(DeltaWeightIH, DeltaWeightHO)
+#pragma omp parallel for private(p, j, i, k, SumDOW, DeltaO, DeltaH) firstprivate( DeltaWeightIH, DeltaWeightHO) lastprivate(DeltaWeightIH, DeltaWeightHO)
         for( np = 1 ; np <= numPattern ; np++ ) {    /* repeat for all the training patterns */
             p = ranpat[np];
             for( j = 1 ; j <= numHid ; j++ ) {    /* compute hidden unit activations */
