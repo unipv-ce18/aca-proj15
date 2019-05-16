@@ -15,9 +15,7 @@ int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int nu
     double SumO[numPattern+1][numOut+1], Output[numPattern+1][numOut+1];
     double accuracy=0;
     double precision=0;
-    fprintf(stdout, "prova0") ;
     for( p = 1 ; p <= numPattern ; p++ ) {    /* repeat for all the training patterns */
-        fprintf(stdout, "\nprova pat%d\t", p) ;
         for( j = 1 ; j <= numHid ; j++ ) {    /* compute hidden unit activations */
 
             SumH[p][j] = Weight[0][0][j];
@@ -35,7 +33,7 @@ int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int nu
         }
     }
 
-    fprintf(stdout, "prova1") ;
+
     accuracy=0; // di quanto è sbagliato
     precision=0;  //quante volte sbaglia
 
@@ -74,6 +72,7 @@ int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int nu
             fprintf(stdout, "\n%f\t%f\t", allData[p].out[k], Output[p][k]) ;
         }
     }
+    fprintf(stdout, "\n\n\naccuracy:\t%f\nprecision:\t%f", accuracy, precision) ;
 
     for (int c=0;c<numPattern;c++){
         free(allData[c].out);
