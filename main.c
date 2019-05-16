@@ -18,11 +18,9 @@ int main() {
 
     printf("e' gia' qualcosa\n\n");
 
-    double ***bestWeight=seriale(allData, numIn, numOut, numPat);
+    //double ***bestWeight=seriale(allData, numIn, numOut, numPat);
+    double ***bestWeight=parallel(allData, numIn, numOut, numPat);
 
-    //parallel(allData, numIn, numOut, numPat);
-
-    //Mi servono gli arrey dei pesi da passare al serialeTest;
     serialeTest(allDataTest, numIn, numOut, numPatTest, bestWeight);
     free(bestWeight);
 
