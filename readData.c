@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <string.h>
 #include <ctype.h>
 #include "readData.h"
 
@@ -107,7 +108,10 @@ struct data firstDataAsBias(struct data allData, int numIn, int numOut){
 FILE* openFile(FILE* fd, char* fileName){
     fd=fopen(fileName, "r");
     if( fd==NULL ) {
-        perror("Error, data file not found");
+        char error[20]="Error, file \"";
+        strcat(error, fileName);
+        strcat(error, "\" not found :(");
+        perror(error);
         exit(1);
     }
     return fd;
