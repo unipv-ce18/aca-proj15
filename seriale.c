@@ -3,13 +3,14 @@
 #include <time.h>
 #include <math.h>
 #include <fcntl.h>
+#include <omp.h>
 #include "readData.h"
 #include "seriale.h"
 #include "readInitialWeight.h"
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
-double*** seriale(struct data * allData, int numIn, int numHid, int numOut, int numPattern) {
+double*** seriale(struct data * allData, int numIn, int numHid, int numOut, int numPattern, int epochMax, double* time) {
     int    i, j, k, p, np, op, ranpat[numPattern+1], epoch;
     double SumH[numPattern+1][numHid+1], **WeightIH, Hidden[numPattern+1][numHid+1];
     double SumO[numPattern+1][numOut+1], **WeightHO, Output[numPattern+1][numOut+1];
@@ -22,6 +23,8 @@ double*** seriale(struct data * allData, int numIn, int numHid, int numOut, int 
 
     WeightIH=readInitialWeightIH(numIn, numHid);
     WeightHO= readInitialWeightHO(numHid, numOut);
+
+    double start_time = omp_get_wtime();
 
     for( i = 0 ; i <= numIn ; i++ ) {
         for( j = 1 ; j <= numHid ; j++ ) {
@@ -36,7 +39,7 @@ double*** seriale(struct data * allData, int numIn, int numHid, int numOut, int 
         }
     }
 
-    for( epoch = 0 ; epoch < 1000 ; epoch++) {    /* iterate weight updates */
+    for( epoch = 0 ; epoch < epochMax ; epoch++) {    /* iterate weight updates */
         for( p = 1 ; p <= numPattern ; p++ ) {    /* randomize order of training patterns */
             ranpat[p] = p ;
         }
@@ -138,6 +141,8 @@ double*** seriale(struct data * allData, int numIn, int numHid, int numOut, int 
             //break ;  /* stop learning when 'near enough' */
     }
 
+    *time = omp_get_wtime() - start_time;
+
     fprintf(stdout, "\n\n\nminAcc=%-4f,\t", minAccuracy) ;
     fprintf(stdout, "maxPrecision=%-4f\n", maxprecision) ;
     //printf(stdout, "\n\nNETWORK DATA - EPOCH %d\n\nPat\t", epoch) ;   /* print network outputs */
@@ -157,12 +162,6 @@ double*** seriale(struct data * allData, int numIn, int numHid, int numOut, int 
             fprintf(stdout, "\n%f\t%f\t", allData[p].out[k], Output[p][k]) ;
         }
     }*/
-
-    for (int c=0;c<numPattern;c++){
-        free(allData[c].out);
-        free(allData[c].in);
-    }
-    free(allData);
 
     for (int c=0;c<numIn;c++){
         free(WeightIH[c]);

@@ -7,7 +7,8 @@
 
 
 int main() {
-    int numIn=11, numHid=15, numOut=9, numPat, numPatTest;
+    int numIn=11, numHid=15, numOut=9, numPat, numPatTest, epochMax=1000;
+    double timeSeriale=0.0, timeParallel=0.0;
 
     struct data *allData, *allDataTest;
     char *fileNameData="data.csv";
@@ -16,11 +17,23 @@ int main() {
     char *fileNameDataTest="dataTest.csv";
     allDataTest=readData(numIn, numOut, &numPatTest, fileNameDataTest);
 
-    //double ***bestWeight=seriale(allData, numIn, numHid, numOut, numPat);
-    double ***bestWeight=parallel(allData, numIn, numHid, numOut, numPat);
+    double ***bestWeightSeriale=seriale(allData, numIn, numHid, numOut, numPat, epochMax, &timeSeriale);
+    double ***bestWeightParallel=parallel(allData, numIn, numHid, numOut, numPat, epochMax, &timeParallel);
 
-    serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, bestWeight);
-    free(bestWeight);
+    for (int c=0;c<numPat;c++){
+        free(allData[c].out);
+        free(allData[c].in);
+    }
+    free(allData);
+
+
+    double time=timeSeriale-timeParallel;
+
+    printf("\n\ntempo seriale=\t%.3lfs\ntempo parallelo=\t%.3lfs\ndifferenza=\t%.3lfs", timeSeriale, timeParallel, time);
+
+    //serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, bestWeight);
+    free(bestWeightSeriale);
+    free(bestWeightParallel);
 
 
     return 0;
