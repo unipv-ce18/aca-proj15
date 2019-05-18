@@ -7,7 +7,7 @@
 
 
 int main() {
-    int numIn=11, numHid=15, numOut=9, numPat, numPatTest, epochMax=5000;
+    int numIn=11, numHid=15, numOut=9, numPat, numPatTest, epochMax=1000;
     double timeSeriale=0.0, timeParallel=0.0;
 
     struct data *allData, *allDataTest;
