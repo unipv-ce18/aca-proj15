@@ -7,7 +7,7 @@
 
 
 int main() {
-    int numIn=11, numHid=15, numOut=9, numPat, numPatTest, epochMax=1000;
+    int numIn=11, numHid=15, numOut=9, numPat, numPatTest, epochMax=5000;
     double timeSeriale=0.0, timeParallel=0.0;
 
     struct data *allData, *allDataTest;
@@ -18,7 +18,7 @@ int main() {
     allDataTest=readData(numIn, numOut, &numPatTest, fileNameDataTest);
 
     double ***bestWeightSeriale=seriale(allData, numIn, numHid, numOut, numPat, epochMax, &timeSeriale);
-    double ***bestWeightParallel=parallel(allData, numIn, numHid, numOut, numPat, epochMax, &timeParallel);
+    //double ***bestWeightParallel=parallel(allData, numIn, numHid, numOut, numPat, epochMax, &timeParallel);
 
     for (int c=0;c<numPat;c++){
         free(allData[c].out);
@@ -29,11 +29,11 @@ int main() {
 
     double time=timeSeriale-timeParallel;
 
-    printf("\n\ntempo seriale=\t%.3lfs\ntempo parallelo=\t%.3lfs\ndifferenza=\t%.3lfs", timeSeriale, timeParallel, time);
+    printf("\n\nt seriale=\t%.3lfs\nt parallelo=\t%.3lfs\ndifferenza=\t%.3lfs", timeSeriale, timeParallel, time);
 
     //serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, bestWeight);
     free(bestWeightSeriale);
-    free(bestWeightParallel);
+    //free(bestWeightParallel);
 
 
     return 0;
