@@ -17,7 +17,7 @@ int main() {
     char *fileNameDataTest="dataTest.csv";
     allDataTest=readData(numIn, numOut, &numPatTest, fileNameDataTest);
 
-    //double ***bestWeightSeriale=seriale(allData, numIn, numHid, numOut, numPat, epochMax, &timeSeriale);
+    double ***bestWeightSeriale=seriale(allData, numIn, numHid, numOut, numPat, epochMax, &timeSeriale);
     double ***bestWeightParallel=parallel(allData, numIn, numHid, numOut, numPat, epochMax, &timeParallel);
 
     for (int c=0;c<numPat;c++){
@@ -29,10 +29,10 @@ int main() {
 
     double time=timeSeriale-timeParallel;
 
-    printf("\n\nt seriale=\t%.3lfs\nt parallelo=\t%.3lfs\ndifferenza=\t%.3lfs", timeSeriale, timeParallel, time);
+    printf("\n\nt seriale=\t%.3lfs\nt parallelo=\t%.3lfs\ndifferenza=\t%.3lfs\n\n", timeSeriale, timeParallel, time);
 
     //serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, bestWeight);
-    //free(bestWeightSeriale);
+    free(bestWeightSeriale);
     free(bestWeightParallel);
 
 
