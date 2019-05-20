@@ -36,13 +36,13 @@ int main() {
 
     }else if(strcmp("s", ans)==0) {
         double ***bestWeightSeriale = seriale(allData, numIn, numHid, numOut, numPat, epochMax, &timeSeriale);
-        serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, bestWeightSeriale);
+        //serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, bestWeightSeriale);
         free(bestWeightSeriale);
 
         printf("\n\nt seriale=\t%.3lfs\n\n", timeSeriale);
     }else if(strcmp("p", ans)==0) {
         double ***bestWeightParallel = parallel(allData, numIn, numHid, numOut, numPat, epochMax, &timeParallel);
-        serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, bestWeightParallel);
+        //serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, bestWeightParallel);
         free(bestWeightParallel);
 
 
