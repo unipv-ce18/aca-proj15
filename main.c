@@ -8,9 +8,9 @@
 
 
 int main() {
-    int numIn=11, numHid=15, numOut=9, numPat, numPatTest, epochMax=1000;
+    int numIn=11, numHid=4, numOut=9, numPat, numPatTest, epochMax=7000;
     double timeSeriale=0.0, timeParallel=0.0;
-    char ans[20];
+    char ans[20]="s";
 
     struct data *allData, *allDataTest;
     char *fileNameData="data.csv";
@@ -20,9 +20,9 @@ int main() {
     allDataTest=readData(numIn, numOut, &numPatTest, fileNameDataTest);
 
     printf("Enter number of epoch :\n");
-    scanf("%d", &epochMax);
+    //scanf("%d", &epochMax);
     printf("serial o parallel or all? s/p/a\n");
-    scanf("%s",ans);
+    //scanf("%s",ans);
 
     if(strcmp("a", ans)==0) {
         double ***bestWeightSeriale = seriale(allData, numIn, numHid, numOut, numPat, epochMax, &timeSeriale);
