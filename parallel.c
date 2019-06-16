@@ -75,7 +75,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numPa
                 Output[iteration][k] = 1.0 / (1.0 + exp(-SumO[iteration][k]));   /* Sigmoidal Outputs VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
                 Error -= (allData[iteration].out[k] * log(Output[iteration][k]) + (1.0 - allData[iteration].out[k]) * log(1.0 - Output[iteration][k]));    /*Cross-Entropy Error UTILE PER PROBABILITY OUTPUT*/
                 DeltaO[iteration][k] = allData[iteration].out[k] - Output[iteration][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
-                if(allData[iteration].out[k] - Output[iteration][k]<0.4)
+                if(fabs(allData[iteration].out[k] - Output[iteration][k])<0.49)
                     precision++;
             }
 

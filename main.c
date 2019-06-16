@@ -25,7 +25,7 @@ int main() {
     printf("Enter number of epoch :\n");
     scanf("%d", &epochMax);
     printf("serial o parallel or all? s/p/a\n");
-    //scanf("%s",ans);
+    scanf("%s",ans);
 
     if(strcmp("a", ans)==0) {
         SweightIH=readInitialWeightIH(numIn, numHid);

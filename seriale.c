@@ -15,9 +15,9 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
     int    i, j, k, p, epoch;
     double SumH[numPattern+1][numHid+1], Hidden[numPattern+1][numHid+1];
     double SumO[numPattern+1][numOut+1], Output[numPattern+1][numOut+1];
-    double DeltaO[numOut+1], SumDOW[numHid+1], DeltaH[numHid+1];
+    double DeltaO[batch][numOut+1], SumDOW[numHid+1], DeltaH[batch][numHid+1];
     double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut+1];
-    double Error, eta = 0.03;
+    double Error, eta = 0.003;
     double precision=0;
     double smallwt=0.5;
 
@@ -37,13 +37,6 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
     double start_time = omp_get_wtime();
 
     for( epoch = 0 ; epoch < epochMax ; epoch++) {    /* iterate weight updates */
-        for (k = 1; k <= numOut; k++) {
-            DeltaO[k] = 0.0;
-        }
-        for (j = 1; j <= numHid; j++) {
-            DeltaH[j] = 0.0;
-        }
-
         for( j = 0 ; j <= numHid ; j++ ) {     /* update weights weightIH */
             for( i = 0 ; i <= numIn ; i++ ) {
                 DeltaWeightIH[i][j] =0.0;
@@ -73,32 +66,36 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
 
                 Output[p][k] = 1.0 / (1.0 + exp(-SumO[p][k]));   /* Sigmoidal Outputs VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
                 Error -= (allData[p].out[k] * log(Output[p][k]) + (1.0 - allData[p].out[k]) * log(1.0 - Output[p][k]));    /*Cross-Entropy Error UTILE PER PROBABILITY OUTPUT*/
-                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
+                DeltaO[iteration][k] = allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
 
-                if(fabs(allData[p].out[k] - Output[p][k]) < 0.4)  precision++;
+                if(fabs(allData[p].out[k] - Output[p][k]) < 0.49)  precision++;
             }
 
             for( j = 1 ; j <= numHid ; j++ ) {    /* 'back-propagate' errors to hidden layer */
                 SumDOW[j] = 0.0 ;
                 for( k = 1 ; k <= numOut ; k++ ) {
-                    SumDOW[j] += weightHO[j][k] * DeltaO[k] ;
+                    SumDOW[j] += weightHO[j][k] * DeltaO[iteration][k] ;
                 }
-                DeltaH[j] = SumDOW[j] * Hidden[p][j] * (1.0 - Hidden[p][j]) ;
+                DeltaH[iteration][j] = SumDOW[j] * Hidden[p][j] * (1.0 - Hidden[p][j]) ;
             }
 
-             for( j = 1 ; j <= numHid ; j++ ) {     /* update weights weightIH */
-                 DeltaWeightIH[0][j] += DeltaH[j];
-                 for( i = 1 ; i <= numIn ; i++ ) {
-                     DeltaWeightIH[i][j] += allData[p].in[i] * DeltaH[j];
-                 }
-             }
-             for( k = 1 ; k <= numOut ; k ++ ) {    /* update weights weightHO */
-                 DeltaWeightHO[0][k] += DeltaO[k];
-                 for( j = 1 ; j <= numHid ; j++ ) {
-                     DeltaWeightHO[j][k] +=Hidden[p][j] * DeltaO[k];
-                 }
-             }
+
         }
+        for(int iteration=1; iteration<=batch; iteration++) {
+            for (j = 1; j <= numHid; j++) {     /* update weights WeightIH */
+                DeltaWeightIH[0][j] += DeltaH[iteration][j];
+                for (i = 1; i <= numIn; i++) {
+                    DeltaWeightIH[i][j] += allData[iteration].in[i] * DeltaH[iteration][j];
+                }
+            }
+            for (k = 1; k <= numOut; k++) {    /* update weights WeightHO */
+                DeltaWeightHO[0][k] += DeltaO[iteration][k];
+                for (j = 1; j <= numHid; j++) {
+                    DeltaWeightHO[j][k] += Hidden[iteration][j] * DeltaO[iteration][k];
+                }
+            }
+        }
+
          Error=Error/batch;
 
         for( j = 1 ; j <= numHid ; j++ ) {     /* update weights weightIH */
