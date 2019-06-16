@@ -18,4 +18,4 @@ ELSE()
 ENDIF()
 
 
-add_executable(Progetto15 main.c seriale.h parallel.h readData.h data.csv seriale.c readData.c parallel.c structData.h readInitialWeight.c readInitialWeight.h serialeTest.c serialeTest.h)
+add_executable(Progetto15 main.c seriale.h parallel.h readData.h cmake-build-debug/data.csv seriale.c readData.c parallel.c structData.h readInitialWeight.c readInitialWeight.h serialeTest.c serialeTest.h)
