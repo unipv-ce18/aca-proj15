@@ -3,6 +3,6 @@
 
     #include "structData.h"
 
-    double*** seriale(struct data *, int, int, int, int, int, double*);
+    int seriale(struct data *, int, int, int, int, int, double*, double**, double**);
 
 #endif //PROGETTO15_SERIALE_H

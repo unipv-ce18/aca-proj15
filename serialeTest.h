@@ -5,6 +5,6 @@
 #ifndef PROGETTO15_SERIALETEST_H
 #define PROGETTO15_SERIALETEST_H
 
-int serialeTest(struct data *, int, int, int, int, double***);
+int serialeTest(struct data *, int, int, int, int, double**, double**);
 
 #endif //PROGETTO15_SERIALETEST_H
