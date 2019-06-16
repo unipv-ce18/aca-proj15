@@ -34,6 +34,8 @@ int main() {
         PweightHO=readInitialWeightHO(numHid, numOut);
         seriale(allData, numIn, numHid, numOut, numPat, epochMax, &timeSeriale, SweightIH, SweightHO);
         parallel(allData, numIn, numHid, numOut, numPat, epochMax, &timeParallel, PweightIH, PweightHO);
+        serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, SweightIH, SweightHO);
+        serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, PweightIH, PweightHO);
 
         double time=timeSeriale-timeParallel;
         printf("\n\nt seriale=\t%.3lfs\nt parallelo=\t%.3lfs\ndifferenza=\t%.3lfs\n\n", timeSeriale, timeParallel, time);
