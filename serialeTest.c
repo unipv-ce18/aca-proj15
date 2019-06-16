@@ -49,7 +49,7 @@ int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int nu
     for ( p=1; p <= numSample; p++){
         for ( k = 1; k <= numOut ; ++k) {
 
-            printf("I Risultati sono: %f\t%f\t \n", allData[p].out[k], finalOut[p]);
+            printf("I Risultati sono: %f\t%f\t%f\t \n", allData[p].out[k], finalOut[p],Output[p][k]);
 
             if (allData[p].out[k] == finalOut[p]){
                 precision++;
@@ -60,20 +60,6 @@ int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int nu
     precision = precision / numSample;
 
     printf("\nLa precisione finale e' del: %f", precision);
-
-
-    for( p = 1 ; p <= 10 ; p++ ) {
-        fprintf(stdout, "\n%d\t", p) ;
-        for( i = 1 ; i <= numIn ; i++ ) {
-            fprintf(stdout, "%f\t", allData[p].in[i]) ;
-        }
-        fprintf(stdout, "\n\n\n") ;
-        for( k = 1 ; k <= numOut ; k++ ) {
-            fprintf(stdout, "\n%f\t%f\t", allData[p].out[k], Output[p][k]) ;
-        }
-    }
-    fprintf(stdout, "\n\naccuracy:\nprecision:\t%f", precision) ;
-
 
     for (int c=0;c<numSample;c++){
         free(allData[c].out);
