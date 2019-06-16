@@ -57,7 +57,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numPa
         precision=0.0;
 
 
-        #pragma omp parallel for private(j, i, k, SumDOW) lastprivate(Error)  //reduction(+:DeltaWeightIH)
+        #pragma omp parallel for private(j, i, k, SumDOW) reduction(-: Error)  //reduction(+:DeltaWeightIH)
         for(int iteration=1; iteration<=batch; iteration++) {
             for (j = 1; j <= numHid; j++) {    /* compute hidden unit activations */
                 SumH[iteration][j] = WeightIH[0][j];
