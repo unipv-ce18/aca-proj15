@@ -8,7 +8,7 @@
 
 
 int main() {
-    int numIn=11, numHid=3, numOut=1, numPat, numPatTest, epochMax=1000;
+    int numIn=11, numHid=5, numOut=1, numPat, numPatTest, epochMax=600000;
     double timeSeriale=0.0, timeParallel=0.0;
     char ans[20]="s";
 
@@ -18,6 +18,13 @@ int main() {
 
     char *fileNameDataTest="dataTest.csv";
     allDataTest=readData(numIn, numOut, &numPatTest, fileNameDataTest);
+
+    /*for (int k = 0; k <= numOut; k++) {
+        for (int j = 1; j <= numPat; j++) {
+
+            printf("\n out:%d\tVero%f",k, allData[j].out[k]) ;
+        }
+    }*/
 
     printf("Enter number of epoch :\n");
     scanf("%d", &epochMax);
