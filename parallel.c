@@ -21,7 +21,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numPa
     double precision=0;
     double smallwt=0.5;
 
-    for( j = 1 ; j <= numHid ; j++ ) {     //initialize WeightIH and DeltaWeightIH
+    /*for( j = 1 ; j <= numHid ; j++ ) {     //initialize WeightIH and DeltaWeightIH
         for( i = 0 ; i <= numIn ; i++ ) {
             DeltaWeightIH[i][j] = 0.0 ;
             WeightIH[i][j] = 2.0 * ( rando() - 0.5 ) * smallwt ;
@@ -32,7 +32,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numPa
             DeltaWeightHO[j][k] = 0.0 ;
             WeightHO[j][k] = 2.0 * ( rando() - 0.5 ) * smallwt ;
         }
-    }
+    }*/
 
     double start_time = omp_get_wtime();
 
@@ -57,7 +57,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numPa
         precision=0.0;
 
 
-        #pragma omp parallel for private(j, i, k, SumDOW) reduction(-: Error)  //reduction(+:DeltaWeightIH)
+        #pragma omp parallel for private(j, i, k, SumDOW) reduction(-: Error) reduction(+: precision)
         for(int iteration=1; iteration<=batch; iteration++) {
             for (j = 1; j <= numHid; j++) {    /* compute hidden unit activations */
                 SumH[iteration][j] = WeightIH[0][j];
@@ -122,7 +122,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numPa
 
         precision=precision/batch;
 
-        if( epoch%100 == 0 )
+        if( epoch%1000 == 0 )
             fprintf(stdout, "\nEpoch %-5d :   Error = %f\tPrecision = %f", epoch, Error, precision) ;
     }
 

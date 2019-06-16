@@ -21,10 +21,19 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
     double precision=0;
     double smallwt=0.5;
 
+    /*for( j = 1 ; j <= numHid ; j++ ) {     //initialize weightIH and DeltaWeightIH
+        printf("\nHidden:\t%d\n", j);
+        for( i = 0 ; i <= numIn ; i++ ) {
+            printf("%f\t", weightIH[i][j]);
+        }
+    }
+    printf("\n\nDopo:\n\n");
     for( j = 1 ; j <= numHid ; j++ ) {     //initialize weightIH and DeltaWeightIH
+        printf("\nHidden:\t%d\n", j);
         for( i = 0 ; i <= numIn ; i++ ) {
             DeltaWeightIH[i][j] = 0.0 ;
             weightIH[i][j] = 2.0 * ( rando() - 0.5 ) * smallwt ;
+            printf("%f\t", weightIH[i][j]);
         }
     }
     for( k = 1 ; k <= numOut ; k ++ ) {     //initialize weightHO and DeltaWeightHO
@@ -32,7 +41,7 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
             DeltaWeightHO[j][k] = 0.0 ;
             weightHO[j][k] = 2.0 * ( rando() - 0.5 ) * smallwt ;
         }
-    }
+    }*/
 
     double start_time = omp_get_wtime();
 
@@ -114,7 +123,7 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
 
         precision = precision/batch;
 
-        if( epoch%100 == 0 )
+        if( epoch%1000 == 0 )
             fprintf(stdout, "\nEpoch %-5d :   Error = %f\tPrecision = %f", epoch, Error, precision) ;
     }
 
