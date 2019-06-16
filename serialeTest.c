@@ -9,86 +9,77 @@
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
-int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int numPattern, double ***Weight) {
+int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int numSample, double **weightIH, double **weightHO) {
     int    i, j, k, p;
-    double SumH[numPattern+1][numHid+1], Hidden[numPattern+1][numHid+1];
-    double SumO[numPattern+1][numOut+1], Output[numPattern+1][numOut+1];
-    double accuracy=0;
+    double SumH[numSample+1][numHid+1], Hidden[numSample+1][numHid+1];
+    double SumO[numSample+1][numOut+1], Output[numSample+1][numOut+1];
     double precision=0;
-    for( p = 1 ; p <= numPattern ; p++ ) {    /* repeat for all the training patterns */
-        for( j = 1 ; j <= numHid ; j++ ) {    /* compute hidden unit activations */
+    double finalOut[numSample+1];
 
-            SumH[p][j] = Weight[0][0][j];
+    printf("\n\nIl numero di Test sono: %d\n", numSample);
+
+    //Start Forward Propagation
+    for( p = 1 ; p <= numSample ; p++ ) {
+        for( j = 1 ; j <= numHid ; j++ ) {
+            SumH[p][j] = weightIH[0][j]; //Bias Value
+
             for( i = 1 ; i <= numIn ; i++ ) {
-                SumH[p][j] += allData[p].in[i] * Weight[0][i][j] ;
+                SumH[p][j] += allData[p].in[i] * weightIH[i][j] ;
             }
-            Hidden[p][j] = 1.0/(1.0 + exp(-SumH[p][j])) ;
+            Hidden[p][j] = 1.0/(1.0 + exp(-SumH[p][j])) ; //Sigmoidal Function
         }
-        for( k = 1 ; k <= numOut ; k++ ) {    /* compute output unit activations and errors */
-            SumO[p][k] = Weight[1][0][k] ;
+
+        for( k = 1 ; k <= numOut ; k++ ) {
+            SumO[p][k] = weightHO[0][k] ; //Bias Value
+
             for( j = 1 ; j <= numHid ; j++ ) {
-                SumO[p][k] += Hidden[p][j] * Weight[1][j][k] ;
+                SumO[p][k] += Hidden[p][j] * weightHO[j][k] ;
             }
-            Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   /* Sigmoidal Outputs VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
+            Output[p][k] = 1.0/(1.0 + exp(-SumO[p][k])) ;   // Sigmoidal Outputs
+
+            //Set vector finalOut
+            if (Output[p][k] >= 0.5) finalOut[p] = 1;
+            else finalOut[p] = 0;
         }
     }
 
+    //check the Error
+    printf("\n");
 
-    accuracy=0; // di quanto è sbagliato
-    precision=0;  //quante volte sbaglia
+    for ( p=1; p <= numSample; p++){
+        for ( k = 1; k <= numOut ; ++k) {
 
-    for(int pat=1;pat<numPattern;pat++) {
-        int class = 0;
-        for (int z = 1; z <= numOut; z++) {
-            if (allData[pat].out[z] < 1.1 && allData[pat].out[z] > 0.9){
-                class=z;
+            printf("I Risultati sono: %f\t%f\t \n", allData[p].out[k], finalOut[p]);
+
+            if (allData[p].out[k] == finalOut[p]){
+                precision++;
             }
-        }
-        int wrong=0;
-        double prob= Output[pat][class];
-        for (int z = 1; z <= numOut; z++) {
-            if (Output[pat][z] > prob && z!=class && Output[pat][z] > Output[pat][wrong] ){
-                wrong=z;
-            }
-        }
-
-        if(wrong>0){
-            accuracy+=abs(wrong-class);
-            precision++;
         }
     }
 
-    accuracy=accuracy/precision;
-    precision=(numPattern-precision)/numPattern;
+    precision = precision / numSample;
+
+    printf("\nLa precisione finale e' del: %f", precision);
 
 
     for( p = 1 ; p <= 10 ; p++ ) {
         fprintf(stdout, "\n%d\t", p) ;
-        /*for( i = 1 ; i <= numIn ; i++ ) {
+        for( i = 1 ; i <= numIn ; i++ ) {
             fprintf(stdout, "%f\t", allData[p].in[i]) ;
-        }*/
+        }
         fprintf(stdout, "\n\n\n") ;
         for( k = 1 ; k <= numOut ; k++ ) {
             fprintf(stdout, "\n%f\t%f\t", allData[p].out[k], Output[p][k]) ;
         }
     }
-    fprintf(stdout, "\n\n\naccuracy:\t%f\nprecision:\t%f", accuracy, precision) ;
+    fprintf(stdout, "\n\naccuracy:\nprecision:\t%f", precision) ;
 
-    for (int c=0;c<numPattern;c++){
+
+    for (int c=0;c<numSample;c++){
         free(allData[c].out);
         free(allData[c].in);
     }
     free(allData);
-
-    for (int c=0;c<numIn;c++){
-        free(Weight[0][c]);
-    }
-    free(Weight[0]);
-
-    for (int c=0;c<numHid;c++){
-        free(Weight[1][c]);
-    }
-    free(Weight[1]);
 
     return 1 ;
 }
