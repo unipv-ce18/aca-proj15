@@ -16,7 +16,7 @@ int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int nu
     double precision=0;
     double finalOut[numSample+1];
 
-    printf("\n\nIl numero di Test sono: %d\n", numSample);
+    //printf("\n\nIl numero di Test sono: %d\n", numSample);
 
     //Start Forward Propagation
     for( p = 1 ; p <= numSample ; p++ ) {
@@ -49,7 +49,7 @@ int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int nu
     for ( p=1; p <= numSample; p++){
         for ( k = 1; k <= numOut ; ++k) {
 
-            printf("I Risultati sono: %f\t%f\t%f\t \n", allData[p].out[k], finalOut[p],Output[p][k]);
+            //printf("I Risultati sono: %f\t%f\t%f\t \n", allData[p].out[k], finalOut[p],Output[p][k]);
 
             if (allData[p].out[k] == finalOut[p]){
                 precision++;
@@ -60,12 +60,6 @@ int serialeTest(struct data * allData, int numIn, int numHid, int numOut, int nu
     precision = precision / numSample;
 
     printf("\nLa precisione finale e' del: %f", precision);
-
-    for (int c=0;c<numSample;c++){
-        free(allData[c].out);
-        free(allData[c].in);
-    }
-    free(allData);
 
     return 1 ;
 }
