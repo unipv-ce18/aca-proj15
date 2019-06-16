@@ -19,13 +19,6 @@ int main() {
     char *fileNameDataTest="dataTest.csv";
     allDataTest=readData(numIn, numOut, &numPatTest, fileNameDataTest);
 
-    /*for (int k = 0; k <= numOut; k++) {
-        for (int j = 1; j <= numPat; j++) {
-
-            printf("\n out:%d\tVero%f",k, allData[j].out[k]) ;
-        }
-    }*/
-
     printf("Enter number of epoch :\n");
     scanf("%d", &epochMax);
     printf("serial o parallel or all? s/p/a\n");
