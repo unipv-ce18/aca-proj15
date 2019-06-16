@@ -17,7 +17,7 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
     double SumO[numPattern+1][numOut+1], Output[numPattern+1][numOut+1];
     double DeltaO[numOut+1], SumDOW[numHid+1], DeltaH[numHid+1];
     double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut+1];
-    double Error, eta = 0.00003;
+    double Error, eta = 0.03;
     double precision=0;
     double smallwt=0.5;
 
@@ -73,10 +73,9 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
 
                 Output[p][k] = 1.0 / (1.0 + exp(-SumO[p][k]));   /* Sigmoidal Outputs VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
                 Error -= (allData[p].out[k] * log(Output[p][k]) + (1.0 - allData[p].out[k]) * log(1.0 - Output[p][k]));    /*Cross-Entropy Error UTILE PER PROBABILITY OUTPUT*/
-                DeltaO[k] += allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
-                //fprintf(stdout, "\nVero%f :   predizione = %f", allData[p].out[k], Output[p][k]) ;
-                if(allData[p].out[k] - Output[p][k]<0.4)
-                    precision++;
+                DeltaO[k] = allData[p].out[k] - Output[p][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
+
+                if(fabs(allData[p].out[k] - Output[p][k]) < 0.4)  precision++;
             }
 
             for( j = 1 ; j <= numHid ; j++ ) {    /* 'back-propagate' errors to hidden layer */
@@ -99,7 +98,6 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
                      DeltaWeightHO[j][k] +=Hidden[p][j] * DeltaO[k];
                  }
              }
-
         }
          Error=Error/batch;
 
@@ -117,7 +115,7 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
             }
         }
 
-        precision=precision/batch;
+        precision = precision/batch;
 
         if( epoch%100 == 0 )
             fprintf(stdout, "\nEpoch %-5d :   Error = %f\tPrecision = %f", epoch, Error, precision) ;
