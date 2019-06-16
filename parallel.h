@@ -3,6 +3,6 @@
 
     #include "structData.h"
 
-    double*** parallel(struct data *, int, int, int, int, int, double*);
+    int parallel(struct data *, int, int, int, int, int, double*, double **, double **);
 
 #endif //PROGETTO15_PARALLEL_H
