@@ -19,7 +19,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
     double lossError, precision=0;
     double start_time = omp_get_wtime();
 
-
+    omp_set_num_threads(64);
     for( epoch = 0 ; epoch < epochMax ; epoch++) {    /* iterate weight updates */
         #pragma omp parallel
         {
