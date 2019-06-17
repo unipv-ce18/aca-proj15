@@ -3,6 +3,7 @@
 
     #include "structData.h"
 
-    int seriale(struct data *, int, int, int, int, int, double, double*, double**, double**);
+    int serial(struct data *allData, int numIn, int numHid, int numOut, int numSample, int epochMax,
+               double learningRate, double *time, double **weightIH, double **weightHO);
 
 #endif //PROGETTO15_SERIALE_H

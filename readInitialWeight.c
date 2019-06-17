@@ -4,7 +4,7 @@
 #include <malloc.h>
 #include <ctype.h>
 
-double** initialWeight(int row, int colomn,  char *fileName);
+double** initialWeight(int row, int column,  char *fileName);
 
 double** readInitialWeightIH(int numIn, int numHid) {
     if(numIn>11 || numHid>29){
@@ -28,13 +28,13 @@ double** readInitialWeightHO(int numHid, int numOut) {
     return initialWeight(numHid, numOut, fileName);
 }
 
-double** initialWeight(int row, int colomn,  char *fileName) {
+double** initialWeight(int row, int column,  char *fileName) {
 
-    colomn++;
+    column++;
     row++;
 
     double  **Weight= (double **)malloc(row * sizeof(double*));
-    for(int i = 0; i <=row; i++) Weight[i] = (double *)malloc(colomn * sizeof(double));
+    for(int i = 0; i <=row; i++) Weight[i] = (double *)malloc(column * sizeof(double));
 
 
     FILE *fd;
@@ -55,7 +55,7 @@ double** initialWeight(int row, int colomn,  char *fileName) {
 
         char *p=buf;
 
-        for(int co=1; co<colomn; ){
+        for(int co=1; co<column; ){
             if (isdigit(*p) || ((*p == '-' || *p == '+' || *p == '.') && isdigit(*(p + 1)))) {
                 Weight[j][co]= strtod(p, &p); // Read number
                 co++;

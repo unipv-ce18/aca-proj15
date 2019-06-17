@@ -2,26 +2,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include "seriale.h"
-#include "serialeTest.h"
+#include "test.h"
 #include "parallel.h"
 #include "readData.h"
 #include "readInitialWeight.h"
 
 
 int main() {
-    int numIn=11, numHid=5, numOut=1, numPat, numPatTest, epochMax=600000;
+    int numIn=11, numHid=5, numOut=1, numSample, numSampleTest, epochMax=600000;
     double learningRate= 0.1;
-    double timeSeriale=0.0, timeParallel=0.0;
+    double timeSerial=0.0, timeParallel=0.0;
     double **SweightIH, **SweightHO;
     double **PweightIH, **PweightHO;
-    char ans[20]="p";
+    char ans[20];
 
     struct data *allData, *allDataTest;
     char *fileNameData="data.csv";
-    allData=readData(numIn, numOut, &numPat, fileNameData);
+    allData=readData(numIn, numOut, &numSample, fileNameData);
 
     char *fileNameDataTest="dataTest.csv";
-    allDataTest=readData(numIn, numOut, &numPatTest, fileNameDataTest);
+    allDataTest=readData(numIn, numOut, &numSampleTest, fileNameDataTest);
 
     printf("Enter number of epoch :\n");
     scanf("%d", &epochMax);
@@ -33,39 +33,51 @@ int main() {
     scanf("%lf", &learningRate);
 
     if(strcmp("a", ans)==0) {
-        SweightIH=readInitialWeightIH(numIn, numHid);
-        SweightHO=readInitialWeightHO(numHid, numOut);
-        PweightIH=readInitialWeightIH(numIn, numHid);
-        PweightHO=readInitialWeightHO(numHid, numOut);
-        seriale(allData, numIn, numHid, numOut, numPat, epochMax, learningRate, &timeSeriale, SweightIH, SweightHO);
-        parallel(allData, numIn, numHid, numOut, numPat, epochMax, learningRate, &timeParallel, PweightIH, PweightHO);
-        serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, SweightIH, SweightHO);
-        serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, PweightIH, PweightHO);
 
-        double time=timeSeriale-timeParallel;
-        printf("\n\nt seriale=\t%.3lfs\nt parallelo=\t%.3lfs\ndifferenza=\t%.3lfs\n\n", timeSeriale, timeParallel, time);
+        SweightIH = readInitialWeightIH(numIn, numHid);
+        SweightHO = readInitialWeightHO(numHid, numOut);
+        PweightIH = readInitialWeightIH(numIn, numHid);
+        PweightHO = readInitialWeightHO(numHid, numOut);
+
+        serial(allData, numIn, numHid, numOut, numSample, epochMax, learningRate, &timeSerial, SweightIH, SweightHO);
+        parallel(allData, numIn, numHid, numOut, numSample, epochMax, learningRate, &timeParallel, PweightIH, PweightHO);
+        test(allDataTest, numIn, numHid, numOut, numSampleTest, SweightIH, SweightHO);
+        test(allDataTest, numIn, numHid, numOut, numSampleTest, PweightIH, PweightHO);
+
+        double time=timeSerial-timeParallel;
+        printf("\n\nt serial=\t%.3lfs\nt parallelo=\t%.3lfs\ndifferenza=\t%.3lfs\n\n", timeSerial, timeParallel, time);
 
     }else if(strcmp("s", ans)==0) {
-        SweightIH=readInitialWeightIH(numIn, numHid);
-        SweightHO=readInitialWeightHO(numHid, numOut);
-        seriale(allData, numIn, numHid, numOut, numPat, epochMax, learningRate, &timeSeriale, SweightIH, SweightHO);
-        serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, SweightIH, SweightHO);
 
-        printf("\n\nt seriale=\t%.3lfs\n\n", timeSeriale);
+        SweightIH = readInitialWeightIH(numIn, numHid);
+        SweightHO = readInitialWeightHO(numHid, numOut);
+
+        serial(allData, numIn, numHid, numOut, numSample, epochMax, learningRate, &timeSerial, SweightIH, SweightHO);
+        test(allDataTest, numIn, numHid, numOut, numSampleTest, SweightIH, SweightHO);
+
+        printf("\n\nt serial=\t%.3lfs\n\n", timeSerial);
+
     }else if(strcmp("p", ans)==0) {
-        PweightIH=readInitialWeightIH(numIn, numHid);
-        PweightHO=readInitialWeightHO(numHid, numOut);
-        parallel(allData, numIn, numHid, numOut, numPat, epochMax, learningRate, &timeParallel, PweightIH, PweightHO);
-        serialeTest(allDataTest, numIn, numHid, numOut, numPatTest, PweightIH, PweightHO);
+        PweightIH = readInitialWeightIH(numIn, numHid);
+        PweightHO = readInitialWeightHO(numHid, numOut);
+
+        parallel(allData, numIn, numHid, numOut, numSample, epochMax, learningRate, &timeParallel, PweightIH, PweightHO);
+        test(allDataTest, numIn, numHid, numOut, numSampleTest, PweightIH, PweightHO);
 
         printf("\n\nt parallelo=\t%.3lfs\n\n", timeParallel);
     }
 
-    for (int c=0;c<numPat;c++){
+    for (int c = 0; c < numSample; c++){
         free(allData[c].out);
         free(allData[c].in);
     }
     free(allData);
+
+    for (int c = 0; c < numSampleTest; c++){
+        free(allDataTest[c].out);
+        free(allDataTest[c].in);
+    }
+    free(allDataTest);
 
     return 0;
 }

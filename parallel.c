@@ -8,32 +8,15 @@
 #include "readData.h"
 #include "readInitialWeight.h"
 
-#define rando() (((double)rand()/((double)RAND_MAX+1)))
+int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSample, int epochMax,
+        double learningRate, double* time, double** WeightIH, double** WeightHO) {
 
-int parallel(struct data * allData, int numIn, int numHid, int numOut, int numPattern, int epochMax, double eta, double* time, double** WeightIH, double** WeightHO) {
-    int batch=numPattern;
     int    i, j, k, epoch;
-    double SumH[numPattern+1][numHid+1], Hidden[numPattern+1][numHid+1];
-    double SumO[numPattern+1][numOut+1], Output[numPattern+1][numOut+1];
-    double DeltaO[batch][numOut+1], SumDOW[numHid+1], DeltaH[batch][numHid+1];
+    double SumH[numSample+1][numHid+1], Hidden[numSample+1][numHid+1];
+    double SumO[numSample+1][numOut+1], Output[numSample+1][numOut+1];
+    double DeltaO[numSample][numOut+1], PartialDeltaH[numHid+1], DeltaH[numSample][numHid+1];
     double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut+1];
-    double Error;
-    double precision=0;
-    double smallwt=0.5;
-
-    /*for( j = 1 ; j <= numHid ; j++ ) {     //initialize WeightIH and DeltaWeightIH
-        for( i = 0 ; i <= numIn ; i++ ) {
-            DeltaWeightIH[i][j] = 0.0 ;
-            WeightIH[i][j] = 2.0 * ( rando() - 0.5 ) * smallwt ;
-        }
-    }
-    for( k = 1 ; k <= numOut ; k ++ ) {     //initialize WeightHO and DeltaWeightHO
-        for( j = 0 ; j <= numHid ; j++ ) {
-            DeltaWeightHO[j][k] = 0.0 ;
-            WeightHO[j][k] = 2.0 * ( rando() - 0.5 ) * smallwt ;
-        }
-    }*/
-
+    double lossError, precision=0;
     double start_time = omp_get_wtime();
 
 
@@ -53,12 +36,12 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numPa
                 }
             }
         }
-        Error = 0.0 ;
+        lossError = 0.0 ;
         precision=0.0;
 
 
-        #pragma omp parallel for private(j, i, k, SumDOW) reduction(-: Error) reduction(+: precision)
-        for(int iteration=1; iteration<=batch; iteration++) {
+        #pragma omp parallel for private(j, i, k, PartialDeltaH) reduction(-: lossError) reduction(+: precision)
+        for(int iteration = 1; iteration <= numSample; iteration++) {
             for (j = 1; j <= numHid; j++) {    /* compute hidden unit activations */
                 SumH[iteration][j] = WeightIH[0][j];
                 for (i = 1; i <= numIn; i++) {
@@ -73,24 +56,22 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numPa
                 }
 
                 Output[iteration][k] = 1.0 / (1.0 + exp(-SumO[iteration][k]));   /* Sigmoidal Outputs VA BENE SOLO PER OUTPUT   1<=OUT<=0*/
-                Error -= (allData[iteration].out[k] * log(Output[iteration][k]) + (1.0 - allData[iteration].out[k]) * log(1.0 - Output[iteration][k]));    /*Cross-Entropy Error UTILE PER PROBABILITY OUTPUT*/
-                DeltaO[iteration][k] = allData[iteration].out[k] - Output[iteration][k];    /* Sigmoidal Outputs, Cross-Entropy Error */
-                if(fabs(allData[iteration].out[k] - Output[iteration][k])<0.49)
-                    precision++;
+                lossError -= (allData[iteration].out[k] * log(Output[iteration][k]) + (1.0 - allData[iteration].out[k]) * log(1.0 - Output[iteration][k]));    /*Cross-Entropy lossError UTILE PER PROBABILITY OUTPUT*/
+                DeltaO[iteration][k] = allData[iteration].out[k] - Output[iteration][k];    /* Sigmoidal Outputs, Cross-Entropy lossError */
+                if(fabs(allData[iteration].out[k] - Output[iteration][k]) < 0.5) precision++;
             }
 
             for( j = 1 ; j <= numHid ; j++ ) {    /* 'back-propagate' errors to hidden layer */
-                SumDOW[j] = 0.0 ;
+                PartialDeltaH[j] = 0.0 ;
                 for( k = 1 ; k <= numOut ; k++ ) {
-                    SumDOW[j] += WeightHO[j][k] * DeltaO[iteration][k] ;
+                    PartialDeltaH[j] += WeightHO[j][k] * DeltaO[iteration][k] ;
                 }
-                DeltaH[iteration][j] = SumDOW[j] * Hidden[iteration][j] * (1.0 - Hidden[iteration][j]) ;
+                DeltaH[iteration][j] = PartialDeltaH[j] * Hidden[iteration][j] * (1.0 - Hidden[iteration][j]) ;
             }
-
         }
 
 
-        for(int iteration=1; iteration<=batch; iteration++) {
+        for(int iteration=1; iteration<=numSample; iteration++) {
             for (j = 1; j <= numHid; j++) {     /* update weights WeightIH */
                 DeltaWeightIH[0][j] += DeltaH[iteration][j];
                 for (i = 1; i <= numIn; i++) {
@@ -104,30 +85,27 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numPa
                 }
             }
         }
-        Error=Error/batch;
 
         for( j = 1 ; j <= numHid ; j++ ) {     /* update weights WeightIH */
-            WeightIH[0][j] += eta*DeltaWeightIH[0][j]/batch ;
+            WeightIH[0][j] += learningRate*DeltaWeightIH[0][j]/numSample ;
             for( i = 1 ; i <= numIn ; i++ ) {
-                WeightIH[i][j] += eta*DeltaWeightIH[i][j]/batch;
+                WeightIH[i][j] += learningRate*DeltaWeightIH[i][j]/numSample;
             }
         }
 
         for( k = 1 ; k <= numOut ; k ++ ) {    /* update weights WeightHO */
-            WeightHO[0][k] += eta*DeltaWeightHO[0][k]/batch;
+            WeightHO[0][k] += learningRate*DeltaWeightHO[0][k]/numSample;
             for( j = 1 ; j <= numHid ; j++ ) {
-                WeightHO[j][k] += eta*DeltaWeightHO[j][k]/batch;
+                WeightHO[j][k] += learningRate*DeltaWeightHO[j][k]/numSample;
             }
         }
+        lossError=lossError/numSample;
+        precision=precision/numSample;
 
-        precision=precision/batch;
-
-        if( epoch%1000 == 0 )
-            fprintf(stdout, "\nEpoch %-5d :   Error = %f\tPrecision = %f", epoch, Error, precision) ;
+        if( epoch%1000 == 0 ) fprintf(stdout, "\nEpoch %-5d :   lossError = %f\tPrecision = %f", epoch, lossError, precision) ;
     }
 
     *time = omp_get_wtime() - start_time;
-
 
     return 1 ;
 }
