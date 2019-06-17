@@ -9,7 +9,7 @@
 
 #define rando() (((double)rand()/((double)RAND_MAX+1)))
 
-int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPattern, int epochMax, double* time,
+int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPattern, int epochMax, double eta, double* time,
                   double **weightIH, double **weightHO) {
     int batch=numPattern;
     int    i, j, k, p, epoch;
@@ -17,7 +17,7 @@ int seriale(struct data * allData, int numIn, int numHid, int numOut, int numPat
     double SumO[numPattern+1][numOut+1], Output[numPattern+1][numOut+1];
     double DeltaO[batch][numOut+1], SumDOW[numHid+1], DeltaH[batch][numHid+1];
     double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut+1];
-    double Error, eta = 0.003;
+    double Error;
     double precision=0;
     double smallwt=0.5;
 
