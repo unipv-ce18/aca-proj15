@@ -18,6 +18,8 @@ int serial(struct data *allData, int numIn, int numHid, int numOut, int numSampl
     double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut+1];
     double lossError, precision=0;
     double start_time = omp_get_wtime();
+    double serial_time;
+    double serial_t = 0.0;
 
 
     for( epoch = 0 ; epoch < epochMax ; epoch++) {    /* iterate weight updates */
@@ -68,6 +70,8 @@ int serial(struct data *allData, int numIn, int numHid, int numOut, int numSampl
             }
         }
 
+        serial_time = omp_get_wtime();
+
         for(int iteration = 1; iteration <= numSample; iteration++) {
             for (j = 1; j <= numHid; j++) {     /* update weights WeightIH */
                 DeltaWeightIH[0][j] += DeltaH[iteration][j];
@@ -101,8 +105,10 @@ int serial(struct data *allData, int numIn, int numHid, int numOut, int numSampl
         precision = precision/numSample;
 
         if( epoch%1000 == 0 ) fprintf(stdout, "\nEpoch %-5d :   lossError = %f\tPrecision = %f", epoch, lossError, precision) ;
+        serial_t+=omp_get_wtime()-serial_time;
     }
 
+    printf("\nTempo non parallelizzabile=%lf\n", serial_t);
     *time = omp_get_wtime() - start_time;
 
     return 1;

@@ -18,16 +18,19 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
     double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut+1];
     double lossError, precision=0;
     double start_time = omp_get_wtime();
+    double serial_time;
+    double serial_t = 0.0;
+    int nMaxThreads=omp_get_max_threads();
+    int nThreads=0;
 
 
-    FILE *fd;
+    /*FILE *fd;
 
-    /* apre il file in scrittura */
     fd=fopen("loss.csv", "w");
     if( fd==NULL ) {
         perror("Errore in apertura del file");
         exit(1);
-    }
+    }*/
 
 
     for( epoch = 0 ; epoch < epochMax ; epoch++) {    /* iterate weight updates */
@@ -52,6 +55,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
 
         #pragma omp parallel for private(j, i, k, PartialDeltaH) reduction(-: lossError) reduction(+: precision)
         for(int iteration = 1; iteration <= numSample; iteration++) {
+            nThreads=omp_get_num_threads();
             for (j = 1; j <= numHid; j++) {    /* compute hidden unit activations */
                 SumH[iteration][j] = WeightIH[0][j];
                 for (i = 1; i <= numIn; i++) {
@@ -80,6 +84,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
             }
         }
 
+        serial_time = omp_get_wtime();
 
         for(int iteration=1; iteration<=numSample; iteration++) {
             for (j = 1; j <= numHid; j++) {     /* update weights WeightIH */
@@ -112,14 +117,19 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
         lossError=lossError/numSample;
         precision=precision/numSample;
 
+
         if( epoch%500 == 0 ){
             fprintf(stdout, "\nEpoch %-5d :   lossError = %f\tPrecision = %f", epoch, lossError, precision) ;
-            fprintf(fd, "%lf\n", lossError);
+            //fprintf(fd, "%lf\n", lossError);
         }
+        serial_t+=omp_get_wtime()-serial_time;
     }
 
+    printf("\nTempo non parallelizzabile=%lf\n", serial_t);
+    printf("numero massimo thread=%d\tutilizzati=%d\n", nMaxThreads, nThreads);
+
     *time = omp_get_wtime() - start_time;
-    fclose(fd);
+    //fclose(fd);
 
     return 1 ;
 }
