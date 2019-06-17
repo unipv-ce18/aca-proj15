@@ -19,7 +19,17 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
     double lossError, precision=0;
     double start_time = omp_get_wtime();
 
-    omp_set_num_threads(64);
+
+    FILE *fd;
+
+    /* apre il file in scrittura */
+    fd=fopen("loss.csv", "w");
+    if( fd==NULL ) {
+        perror("Errore in apertura del file");
+        exit(1);
+    }
+
+
     for( epoch = 0 ; epoch < epochMax ; epoch++) {    /* iterate weight updates */
         #pragma omp parallel
         {
@@ -102,10 +112,14 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
         lossError=lossError/numSample;
         precision=precision/numSample;
 
-        if( epoch%1000 == 0 ) fprintf(stdout, "\nEpoch %-5d :   lossError = %f\tPrecision = %f", epoch, lossError, precision) ;
+        if( epoch%500 == 0 ){
+            fprintf(stdout, "\nEpoch %-5d :   lossError = %f\tPrecision = %f", epoch, lossError, precision) ;
+            fprintf(fd, "%lf\n", lossError);
+        }
     }
 
     *time = omp_get_wtime() - start_time;
+    fclose(fd);
 
     return 1 ;
 }
