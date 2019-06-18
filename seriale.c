@@ -7,9 +7,7 @@
 #include "readData.h"
 #include "seriale.h"
 
-int serial(struct data *allData, int numIn, int numHid, int numOut, int numSample, int epochMax, double learningRate,
-           double *time,
-           double **WeightIH, double **WeightHO) {
+int serial(struct data *allData, int numIn, int numHid, int numOut, int numSample, int epochMax, double learningRate, double *time, double **WeightIH, double **WeightHO) {
     
     int    i, j, k, epoch;
     double SumH[numSample+1][numHid+1], Hidden[numSample+1][numHid+1];
