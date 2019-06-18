@@ -8,8 +8,7 @@
 #include "readData.h"
 #include "readInitialWeight.h"
 
-int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSample, int epochMax,
-        double learningRate, double* time, double** WeightIH, double** WeightHO) {
+int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSample, int epochMax, double learningRate, double* time, double** WeightIH, double** WeightHO) {
 
     int    i, j, k, epoch;
     double SumH[numSample+1][numHid+1], Hidden[numSample+1][numHid+1];
@@ -18,31 +17,17 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
     double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut+1];
     double lossError, precision=0;
     double start_time = omp_get_wtime();
-    double serial_time;
-    double serial_t = 0.0;
-    int nMaxThreads=omp_get_max_threads();
-    int nThreads=0;
-
-
-    /*FILE *fd;
-
-    fd=fopen("loss.csv", "w");
-    if( fd==NULL ) {
-        perror("Errore in apertura del file");
-        exit(1);
-    }*/
-
 
     for( epoch = 0 ; epoch < epochMax ; epoch++) {    /* iterate weight updates */
         #pragma omp parallel
         {
-#pragma omp for collapse(2) nowait
+            #pragma omp for collapse(2) nowait
             for (i = 0; i <= numIn; i++) { /* initialize  DeltaWeightIH */
                 for (j = 0; j <= numHid; j++) {
                     DeltaWeightIH[i][j] = 0.0;
                 }
             }
-#pragma omp for collapse(2)
+            #pragma omp for collapse(2)
             for (j = 0; j <= numHid; j++) { /* initialize  DeltaWeightHO */
                 for (k = 0; k <= numOut; k++) {
                     DeltaWeightHO[j][k] = 0.0;
@@ -56,7 +41,6 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
 
 #pragma omp parallel for private(j, i, k, PartialDeltaH) reduction(-: lossError) reduction(+: precision)
         for (int iteration = 1; iteration <= numSample; iteration++) {
-            nThreads = omp_get_num_threads();
             for (j = 1; j <= numHid; j++) {    /* compute hidden unit activations */
                 SumH[iteration][j] = WeightIH[0][j];
                 for (i = 1; i <= numIn; i++) {
@@ -84,8 +68,6 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
                 DeltaH[iteration][j] = PartialDeltaH[j] * Hidden[iteration][j] * (1.0 - Hidden[iteration][j]);
             }
         }
-
-        serial_time = omp_get_wtime();
 
         for (int iteration = 1; iteration <= numSample; iteration++) {
 
@@ -122,16 +104,10 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
 
         if( epoch%500 == 0 ){
             fprintf(stdout, "\nEpoch %-5d :   lossError = %f\tPrecision = %f", epoch, lossError, precision) ;
-            //fprintf(fd, "%lf\n", lossError);
         }
-        serial_t+=omp_get_wtime()-serial_time;
     }
 
-    printf("\nTempo non parallelizzabile=%lf\n", serial_t);
-    printf("numero massimo thread=%d\tutilizzati=%d\n", nMaxThreads, nThreads);
-
     *time = omp_get_wtime() - start_time;
-    //fclose(fd);
 
     return 1 ;
 }
