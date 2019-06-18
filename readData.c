@@ -136,8 +136,8 @@ struct data firstDataInAndOutAsBias(struct data data, int numIn, int numOut) {
         perror("Not enough memory\n");
         exit(1);
     }
-    data.in[0]=0;
-    data.out[0]=0;
+    data.in[0]=1;
+    data.out[0]=1;
     return data;
 }
 
