@@ -83,20 +83,21 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
                 }
             }
         }
-
-        for (i = 0; i <= numIn; i++) { /* update weights WeightIH */
-            for (j = 1; j <= numHid; j++) {
-                WeightIH[i][j] += learningRate * DeltaWeightIH[i][j] / numSample;
+#pragma omp parallel
+        {
+#pragma omp for reduction(+:WeightIH[:numIn+1][:numHid+1]) collapse(2) nowait
+            for (i = 0; i <= numIn; i++) { /* update weights WeightIH */
+                for (j = 1; j <= numHid; j++) {
+                    WeightIH[i][j] += learningRate * DeltaWeightIH[i][j] / numSample;
+                }
+            }
+#pragma omp for reduction(+:WeightHO[:numHid+1][:numOut+1]) collapse(2)
+            for (j = 0; j <= numHid; j++) { /* update weights WeightHO */
+                for (k = 1; k <= numOut; k++) {
+                    WeightHO[j][k] += learningRate * DeltaWeightHO[j][k] / numSample;
+                }
             }
         }
-
-        for (j = 0; j <= numHid; j++) { /* update weights WeightHO */
-            for (k = 1; k <= numOut; k++) {
-                WeightHO[j][k] += learningRate * DeltaWeightHO[j][k] / numSample;
-            }
-        }
-
-
 
         lossError=lossError/numSample;
         precision=precision/numSample;
