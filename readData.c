@@ -40,9 +40,6 @@ struct data * readData(int numIn, int numOut, int* numPat, char* fileName)
     allData=allocateFirstBlock(allData,dimBlock); //alloco allData della grandezza per un blocco
     allocati+=dimBlock;
 
-    allData[n]=firstDataAsBias(allData[n], numIn, numOut);
-    n++;
-
     fd=openFile(fd, fileName);
 
     /* leggo il file */
@@ -83,24 +80,6 @@ struct data* allocateFirstBlock(struct data *allData, int dimBlock){
     {
         perror("Not enough memory\n");
         exit(1);
-    }
-    return allData;
-}
-
-struct data firstDataAsBias(struct data allData, int numIn, int numOut){
-    allData.in=(double *) malloc(sizeof(double)*(numIn+1));
-    allData.out=(double *) malloc(sizeof(double)*(numOut+1));
-    if(allData.out == NULL || allData.in==NULL)
-    {
-        perror("Not enough memory\n");
-        exit(1);
-    }
-
-    for(int i=0; i<numIn+1;i++){
-        allData.in[i]=0;
-    }
-    for(int i=0; i<numOut+1;i++){
-        allData.out[i]=0;
     }
     return allData;
 }

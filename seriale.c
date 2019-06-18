@@ -10,15 +10,18 @@
 int serial(struct data *allData, int numIn, int numHid, int numOut, int numSample, int epochMax, double learningRate, double *time, double **WeightIH, double **WeightHO) {
     
     int    i, j, k, epoch;
-    double SumH[numSample+1][numHid+1], Hidden[numSample+1][numHid+1];
-    double SumO[numSample+1][numOut+1], Output[numSample+1][numOut+1];
-    double DeltaO[numSample+1][numOut+1], PartialDeltaH[numHid+1], DeltaH[numSample+1][numHid+1];
+    double SumH[numSample][numHid+1], Hidden[numSample][numHid+1];
+    double SumO[numSample][numOut+1], Output[numSample][numOut+1];
+    double DeltaO[numSample][numOut+1], PartialDeltaH[numHid+1], DeltaH[numSample][numHid+1];
     double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut+1];
     double lossError, precision=0;
     double start_time = omp_get_wtime();
     double serial_time;
     double serial_t = 0.0;
 
+    for(int sample = 0; sample < numSample; sample++) {
+        Hidden[sample][0]=1.0;
+    }
 
     for( epoch = 0 ; epoch < epochMax ; epoch++) {    /* iterate weight updates */
 
@@ -37,7 +40,7 @@ int serial(struct data *allData, int numIn, int numHid, int numOut, int numSampl
         lossError = 0.0 ;
         precision=0.0;
 
-        for(int iteration = 1; iteration <= numSample; iteration++) {
+        for(int iteration = 0; iteration < numSample; iteration++) {
 
             for (j = 1; j <= numHid; j++) {    /* compute hidden unit activations */
                 SumH[iteration][j] = WeightIH[0][j];
@@ -71,7 +74,7 @@ int serial(struct data *allData, int numIn, int numHid, int numOut, int numSampl
 
         serial_time = omp_get_wtime();
 
-        for (int iteration = 1; iteration <= numSample; iteration++) {
+        for (int iteration = 0; iteration < numSample; iteration++) {
 
             for (i = 0; i <= numIn; i++) { /* compute deltaWeightIH */
                 for (j = 1; j <= numHid; j++) {
@@ -101,7 +104,7 @@ int serial(struct data *allData, int numIn, int numHid, int numOut, int numSampl
         lossError = lossError/numSample;
         precision = precision/numSample;
 
-        if( epoch%1000 == 0 ) fprintf(stdout, "\nEpoch %-5d :   lossError = %f\tPrecision = %f", epoch, lossError, precision) ;
+        if( epoch%500 == 0 ) fprintf(stdout, "\nEpoch %-5d :   lossError = %f\tPrecision = %f", epoch, lossError, precision) ;
         serial_t+=omp_get_wtime()-serial_time;
     }
 

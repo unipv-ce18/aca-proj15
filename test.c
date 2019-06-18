@@ -9,13 +9,13 @@
 
 int test(struct data *allData, int numIn, int numHid, int numOut, int numSample, double **weightIH, double **weightHO) {
     int    i, j, k;
-    double SumH[numSample+1][numHid+1], Hidden[numSample+1][numHid+1];
-    double SumO[numSample+1][numOut+1], Output[numSample+1][numOut+1];
-    double finalOut[numSample+1];
+    double SumH[numSample][numHid+1], Hidden[numSample][numHid+1];
+    double SumO[numSample][numOut+1], Output[numSample][numOut+1];
+    double finalOut[numSample];
     double precision=0;
 
     //Start Forward Propagation
-    for( int iteration = 1 ; iteration <= numSample ; iteration++ ) {
+    for( int iteration = 0 ; iteration < numSample ; iteration++ ) {
         for( j = 1 ; j <= numHid ; j++ ) {
             SumH[iteration][j] = weightIH[0][j]; //Bias Value
             for( i = 1 ; i <= numIn ; i++ ) {
@@ -40,7 +40,7 @@ int test(struct data *allData, int numIn, int numHid, int numOut, int numSample,
     }
 
     //check the Error
-    for (int iteration = 1; iteration <= numSample; iteration++){
+    for (int iteration = 0; iteration < numSample; iteration++){
         for ( k = 1; k <= numOut ; ++k) {
 
             if (allData[iteration].out[k] == finalOut[iteration]) precision++;
