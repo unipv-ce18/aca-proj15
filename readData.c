@@ -62,7 +62,7 @@ struct data * readData(int numIn, int numOut, int* numPat, char* fileName)
     *numPat=n-1;
 
     for(int p=0; p<n;p++) {
-        for(int k=0; k<=numOut;k++) {
+        for(int k=0; k<numOut;k++) {
             if (allData[p].out[k] < 1.1 && allData[p].out[k] > 0.9) {
                 allData[p].out[k] = 1.0;
             } else {
@@ -109,20 +109,19 @@ struct data * allocateNewBlock(struct data *allData, int allocati){
 
 struct data firstDataInAndOutAsBias(struct data data, int numIn, int numOut) {
     data.in=(double *) malloc(sizeof(double)*(numIn+1));
-    data.out=(double *) malloc(sizeof(double)*(numOut+1));
+    data.out=(double *) malloc(sizeof(double)*(numOut));
     if(data.out == NULL || data.in==NULL)
     {
         perror("Not enough memory\n");
         exit(1);
     }
     data.in[0]=1;
-    data.out[0]=1;
     return data;
 }
 
 
 struct data readAllDigit(char* line, struct data data, int numIn){
-    int in=1, out=1;
+    int in=1, out=0;
     char *p=line;
 
     while (*p) { // While there are more characters to process...

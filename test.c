@@ -10,7 +10,7 @@
 int test(struct data *allData, int numIn, int numHid, int numOut, int numSample, double **weightIH, double **weightHO) {
     int    i, j, k;
     double SumH[numSample][numHid+1], Hidden[numSample][numHid+1];
-    double SumO[numSample][numOut+1], Output[numSample][numOut+1];
+    double SumO[numSample][numOut], Output[numSample][numOut];
     double finalOut[numSample];
     double precision=0;
 
@@ -25,7 +25,7 @@ int test(struct data *allData, int numIn, int numHid, int numOut, int numSample,
             Hidden[iteration][j] = 1.0/(1.0 + exp(-SumH[iteration][j])) ; //Sigmoidal Function
         }
 
-        for( k = 1 ; k <= numOut ; k++ ) {
+        for( k = 0 ; k < numOut ; k++ ) {
             SumO[iteration][k] = weightHO[0][k] ; //Bias Value
             for( j = 1 ; j <= numHid ; j++ ) {
                 SumO[iteration][k] += Hidden[iteration][j] * weightHO[j][k] ;
@@ -41,7 +41,7 @@ int test(struct data *allData, int numIn, int numHid, int numOut, int numSample,
 
     //check the Error
     for (int iteration = 0; iteration < numSample; iteration++){
-        for ( k = 1; k <= numOut ; ++k) {
+        for ( k = 0; k < numOut ; ++k) {
 
             if (allData[iteration].out[k] == finalOut[iteration]) precision++;
         }

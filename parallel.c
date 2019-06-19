@@ -12,9 +12,9 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
 
     int    i, j, k, epoch;
     double SumH[numSample][numHid+1], Hidden[numSample][numHid+1];
-    double SumO[numSample][numOut+1], Output[numSample][numOut+1];
-    double DeltaO[numSample][numOut+1], PartialDeltaH[numHid+1], DeltaH[numSample][numHid+1];
-    double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut+1];
+    double SumO[numSample][numOut], Output[numSample][numOut];
+    double DeltaO[numSample][numOut], PartialDeltaH[numHid+1], DeltaH[numSample][numHid+1];
+    double DeltaWeightIH[numIn+1][numHid+1], DeltaWeightHO[numHid+1][numOut];
     double lossError, precision=0;
     double start_time = omp_get_wtime();
 
@@ -33,7 +33,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
             }
             #pragma omp for collapse(2)
             for (j = 0; j <= numHid; j++) { /* initialize  DeltaWeightHO */
-                for (k = 0; k <= numOut; k++) {
+                for (k = 0; k < numOut; k++) {
                     DeltaWeightHO[j][k] = 0.0;
                 }
             }
@@ -52,7 +52,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
                 }
                 Hidden[iteration][j] = 1.0 / (1.0 + exp(-SumH[iteration][j]));
             }
-            for (k = 1; k <= numOut; k++) {    /* compute output unit activations and errors */
+            for (k = 0; k < numOut; k++) {    /* compute output unit activations and errors */
                 SumO[iteration][k] = WeightHO[0][k];
                 for (j = 1; j <= numHid; j++) {
                     SumO[iteration][k] += Hidden[iteration][j] * WeightHO[j][k];
@@ -66,7 +66,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
 
             for (j = 1; j <= numHid; j++) {    /* 'back-propagate' errors to hidden layer */
                 PartialDeltaH[j] = 0.0;
-                for (k = 1; k <= numOut; k++) {
+                for (k = 0; k < numOut; k++) {
                     PartialDeltaH[j] += WeightHO[j][k] * DeltaO[iteration][k];
                 }
                 DeltaH[iteration][j] = PartialDeltaH[j] * Hidden[iteration][j] * (1.0 - Hidden[iteration][j]);
@@ -82,7 +82,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
             }
 
             for (j = 0; j <= numHid; j++) { /* compute deltaWeightHO */
-                for (k = 1; k <= numOut; k++) {
+                for (k = 0; k < numOut; k++) {
                     DeltaWeightHO[j][k] += Hidden[iteration][j] * DeltaO[iteration][k];
                 }
             }
@@ -95,7 +95,7 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
         }
 
         for (j = 0; j <= numHid; j++) { /* update weights WeightHO */
-            for (k = 1; k <= numOut; k++) {
+            for (k = 0; k < numOut; k++) {
                 WeightHO[j][k] += learningRate * DeltaWeightHO[j][k] / numSample;
             }
         }
