@@ -18,15 +18,6 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
     double lossError, precision=0;
     double start_time = omp_get_wtime();
 
-    FILE *fd;
-
-    /* apre il file in scrittura */
-    fd=fopen("loss.csv", "w");
-    if( fd==NULL ) {
-        perror("Errore in apertura del file");
-        exit(1);
-    }
-
     for(int sample = 0; sample < numSample; sample++) {
         Hidden[sample][0]=1.0;
     }
@@ -115,13 +106,11 @@ int parallel(struct data * allData, int numIn, int numHid, int numOut, int numSa
 
         if( epoch%500 == 0 ){
             fprintf(stdout, "\nEpoch %-5d :\tLossError = %f\tPrecision of training data = %f", epoch, lossError, precision) ;
-            fprintf(fd, "%lf\n", lossError);
         }
     }
 
     *time = omp_get_wtime() - start_time;
 
-    fclose(fd);
     return 1 ;
 }
 
