@@ -60,7 +60,7 @@ int serial(struct data *allData, int numIn, int numHid, int numOut, int numSampl
                 lossError -= (allData[iteration].out[k] * log(Output[iteration][k]) + (1.0 - allData[iteration].out[k]) * log(1.0 - Output[iteration][k]));    // Cross-Entropy lossError
                 DeltaO[iteration][k] = allData[iteration].out[k] - Output[iteration][k];    // Delta for Sigmoidal Outputs, Cross-Entropy lossError
 
-                if(fabs(allData[iteration].out[k] - Output[iteration][k]) < 0.49)  precision++;
+                if(fabs(allData[iteration].out[k] - Output[iteration][k]) < 0.5)  precision++;
             }
 
             for( j = 1 ; j <= numHid ; j++ ) {    // 'back-propagate' errors to hidden layer
