@@ -6,10 +6,9 @@
 #include "readData.h"
 
 struct data * allocateFirstBlock(struct data *allData, int dimBlock);
-struct data firstDataAsBias(struct data allData, int numIn, int numOut);
 FILE* openFile(FILE* fd, char* fileName);
-struct data * allocateNewBlock(struct data *allData,int allocati);
-struct data firstDataInAndOutAsBias(struct data data, int numIn, int numOut);
+struct data * allocateNewBlock(struct data *allData,int allocated);
+struct data allocateAndBias(struct data data, int numIn, int numOut);
 struct data readAllDigit(char* line, struct data data, int numIn);
 
 /**
@@ -21,45 +20,46 @@ struct data readAllDigit(char* line, struct data data, int numIn);
  */
 struct data * readData(int numIn, int numOut, int* numPat, char* fileName)
 {
+    //initialize variable
     int n=0;
     struct data *allData = NULL;
-    int allocati=0;  /* byte allocati */
-    int dimBlock;   /* byte in un blocco */
-    int dimstruct;    /* byte in un struct data */
-    int usati=0;     /* byte struct data usati */
-    int nb = 10;      /* numero di dati per blocco */
-
+    int allocated=0;  
+    int dimBlock;   
+    int dimStruct;    
+    int used=0;
+    int nb = 10;      // # of data per block
     FILE *fd;
     char buf[200];
-    //char *fileName="data.csv";
 
-    dimstruct = sizeof(struct data);
-    dimBlock = nb * dimstruct;
+    dimStruct = sizeof(struct data);
+    dimBlock = nb * dimStruct;
 
+    //allocated allData for one block
+    allData=allocateFirstBlock(allData,dimBlock);
+    allocated+=dimBlock;
 
-    allData=allocateFirstBlock(allData,dimBlock); //alloco allData della grandezza per un blocco
-    allocati+=dimBlock;
-
+    //open of the file
     fd=openFile(fd, fileName);
 
-    /* leggo il file */
+    // read file
     while(fgets(buf, 200, fd)!=NULL) {
-        usati += dimstruct;
-        if(usati>=allocati)
+        used += dimStruct;
+        // if needed allocate new block
+        if(used>=allocated)
         {
-            allData=allocateNewBlock(allData, allocati += dimBlock);
+            allData=allocateNewBlock(allData, allocated += dimBlock);
         }
 
-        allData[n]=firstDataInAndOutAsBias(allData[n], numIn, numOut);
+        allData[n]=allocateAndBias(allData[n], numIn, numOut);
 
         allData[n]=readAllDigit(buf, allData[n], numIn);
         n++;
     }
 
-    /* chiude il file*/
+    //close the file
     fclose(fd);
 
-    *numPat=n-1;
+    *numPat=n;
 
     for(int p=0; p<n;p++) {
         for(int k=0; k<numOut;k++) {
@@ -96,18 +96,17 @@ FILE* openFile(FILE* fd, char* fileName){
     return fd;
 }
 
-struct data * allocateNewBlock(struct data *allData, int allocati){
-    allData = (struct data *) realloc(allData, (size_t) allocati);
+struct data * allocateNewBlock(struct data *allData, int allocated){
+    allData = (struct data *) realloc(allData, (size_t) allocated);
     if(allData == NULL)
     {
-
         perror("Not enough memory\n");
         exit(1);
     }
     return allData;
 }
 
-struct data firstDataInAndOutAsBias(struct data data, int numIn, int numOut) {
+struct data allocateAndBias(struct data data, int numIn, int numOut) {
     data.in=(double *) malloc(sizeof(double)*(numIn+1));
     data.out=(double *) malloc(sizeof(double)*(numOut));
     if(data.out == NULL || data.in==NULL)
