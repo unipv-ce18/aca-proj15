@@ -61,6 +61,7 @@ struct data * readData(int numIn, int numOut, int* numPat, char* fileName)
 
     *numPat=n;
 
+    //sometime he fail to read the exact value of output so we standardize
     for(int p=0; p<n;p++) {
         for(int k=0; k<numOut;k++) {
             if (allData[p].out[k] < 1.1 && allData[p].out[k] > 0.9) {
